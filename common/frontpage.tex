@@ -4,50 +4,37 @@
 %
 {\institutionfont \textbf{\MakeUppercase{\thesisuniversity}} \par}
 %
-\vspace{\stretch{2}} % changing this number and the others changes the proportion
+\vspace{\stretch{4}} % changing this number and the others changes the proportion
 %
-{\divisionfont \textbf{\thesislevel's Degree in \thesiscourse} \par}
+{\divisionfont \textbf{Laurea \thesislevel \space in \thesiscourse} \par}
 %
-\vspace{\stretch{3}}
+\vspace{\stretch{1}}
 %
-\includegraphics[width=50mm]{\thesisuniversitylogo}\\
+\includegraphics[width=120mm]{\thesisuniversitylogo}\\
 %
-\vspace{\stretch{4}}
-%
-{\divisionfont \textbf{\thesislevel's Degree Thesis} \par}
-%
-\vspace{\stretch{3}}
+\vspace{\stretch{2}}
 %
 {\customtitlefont \textbf{\thesistitle} \par}
 %
 \vspace{\stretch{10}}
 %
 \makebox[\textwidth]{\null\hfill\def\arraystretch{2}% % to change the spacing change this number
-\begin{minipage}[t]{.375\textwidth}\raggedright
-    \begin{adjustbox}{width={\textwidth},totalheight={\textheight},keepaspectratio} % with adjustbox it adapts to the lengths of the names, remove it if you want the same font dimension
+\begin{minipage}[t]{.5\textwidth}\raggedright
     \begin{tabular}[t]{@{}l@{}}
         \fixednamesfont \textbf{\thesissupervisortext} \\
         \namesfont \xmakefirstuc{\thesissupervisoronetitle}~\thesissupervisoronename~\MakeUppercase{\thesissupervisoronesurname}\\
         \namesfont \xmakefirstuc{\thesissupervisortwotitle}~\thesissupervisortwoname~\MakeUppercase{\thesissupervisortwosurname}\\
-        \namesfont \xmakefirstuc{\thesissupervisorthreetitle}~\thesissupervisorthreename~\MakeUppercase{\thesissupervisorthreesurname}
     \end{tabular}
-    \end{adjustbox}
 \end{minipage}
 %
 \hfill
 %
-\begin{minipage}[t]{.375\textwidth}\raggedleft
-\begin{adjustbox}{width={\textwidth},totalheight={\textheight},keepaspectratio} % with adjustbox it adapts to the lengths of the names, remove it if you want the same font dimension
+\begin{minipage}[t]{.5\textwidth}\raggedleft
 \begin{tabular}[t]{@{}l@{}}
     \fixednamesfont \textbf{\thesiscandidatetext} \\
     \namesfont \thesiscandidatename~\MakeUppercase{\thesiscandidatesurname}
 \end{tabular}
-\end{adjustbox}
 \end{minipage}\hfill\null}\\
-%
-\vspace{\stretch{5}}
-%
-{\footfont \textbf{\thesisdate} \par}
 %
 \end{titlepage}
 

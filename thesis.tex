@@ -69,7 +69,7 @@
 \paginavuota % to manually create a blank page
 
 \sommario
-\input{content/summary}
+\input{content/abstract}
 
 \phantom{0}
 \cleardoublepage
@@ -81,18 +81,8 @@
 \paginavuota
 \tableofcontents
 
-\listoftables % ToC for tables
-
-\listoffigures % ToC for figures
-
-% actually abbreviation is the name used for acronym in glossaries-extra
-% title sets the name
-% type tells the type of glossary to print
-% style overrides the global style
-% here we are printing only abbreviations
-% printunsrtglossary if using record, otherwise printglossary is ok
-\paginavuota
-\printunsrtglossary[style=altlist,title=Acronyms,type=\glsxtrabbrvtype]
+% \listoffigures % ToC for figures
+\lstlistoflistings % ToC for code
 
 % also list of symbols here if needed
 
@@ -107,10 +97,20 @@
 
 \input{content/chapters.tex}
 
+% actually abbreviation is the name used for acronym in glossaries-extra
+% title sets the name
+% type tells the type of glossary to print
+% style overrides the global style
+% here we are printing only abbreviations
+% printunsrtglossary if using record, otherwise printglossary is ok
+\paginavuota
+\printunsrtglossary[style=altlist,title=Glossario,type=\glsxtrabbrvtype]
+
+
 % \paginavuota % it works even without stile=classica
 
-\appendix
-\input{content/appendix}
+% \appendix
+% \input{content/appendix}
 
 % endnotes here if needed
 
