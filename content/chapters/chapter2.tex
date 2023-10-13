@@ -1,4 +1,222 @@
 \chapter{GPU Computing}
 \label{sec:gpu}
 
-\lipsum[1]
+Questo capitolo fornisce un'introduzione al GPU computing, per rendere il progetto di tesi più fruibile al lettore. Il capitolo è composto da ... sezioni:
+
+\begin{itemize}
+    \item breve storia di come le GPU sono diventate importanti in ambito scientifico
+    \item architettura di una GPU e differenze con le CPU
+    \item metodi di programmazione con delle GPU
+\end{itemize}
+
+\section[Breve storia delle GPU in ambito scientifico]{Storia delle GPU in ambito scientifico}
+
+Le GPU sono state originariamente sviluppate per scopi legati all'elaborazione grafica, in particolare per migliorare la resa delle immagini e la grafica 3D nei videogiochi, nelle applicazioni CAD e nei software di modellazione e rendering. Le esigenze di una grafica sempre più dettagliata e complessa hanno portato alla creazione di unità di elaborazione specializzate in grado di gestire gli intensi calcoli in modo parallelo. Con il tempo è emerso che le GPU potevano essere sfruttate per scopi diversi dall'elaborazione grafica: i loro processori palalleli si sono rivelati utili per applicazioni scientifiche e tecniche che richiedavano elaborazione intensive, come la simulazione, l'analisi dei dati e il calcolo scientifico. Adesso in particolare le GPU si sono rivelate particolarmente adatte per l'addestramento e l'implementaione di reti neurali, diventando uno strumento fondamentale per l'esplosione dell'intelligenza atrificiale e del machine learning.
+
+% GPGPU
+
+Quando si parla di GPGPU si intende l'utilizzo delle GPU per compiti di calcolo generale, rendendole molto più che semplici dispositivi per l'elaborazione grafica. Questo è fondamentale per accelerare algoritmi che richiedono enorme quantità di risorse, unicamente a patto che la computazione sia parallelizzabile su più processori.
+Calcoli che prima richiedevano l'uso di supercomputer per essere eseguiti in tempi accettabili adesso si possono eseguire in una normale GPU desktop. 
+Nel 2011 secondo la TOP500 (https://www.top500.org/ classifica che descrive nel dettaglio i 500 sistemi informatici non distribuiti più potenti al mondo) il Tianhe-1A, montando delle GPU Nvidia Tesla M2050 (todo: mettere link), si posizionava secondo raggiungendo i 4.7 petaFLOPS di velocità. 
+Nel 2012 invece in primo supercomputer al mondo divenne il Titan (todo: aggiustare link https://nvidianews.nvidia.com/news/nvidia-powers-titan-world-s-fastest-supercomputer-for-open-scientific-research-6622738) montando 18,688 GPU Nvida Tesla K20X con altrettante CPU AMD Opteron raggiungendo i 17.59 petaFLOPS.
+Da quell'anno in poi divenne chiaro che le GPU erano diventate un componente essenziale nell'HPC quanto nel desktop computing e dato che il supercomputing il motore trainante di molte delle tecnologie che vediamo nei processori moderni, si è sviluppato un circolo virtuolso per cui la necessità di processori sempre più veloci per elaborare dataset sempre più grandi, porta l'industria a produrre computer sempre più potenti. Ad oggi si sta delineando una divisione netta nella produzione di GPU per uso desktop e per uso scientifico, i principali produttori, quali AMD, Nvidia e, più recentemente, Intel, rilasciano prodotti ottimizzati per l'uno o per l'altro mercato, con lo scopo di soddisfare i requisiti richiesti da ogni settore. A giugno 2023 il supercomputer più veloce al mondo è il Frontier con 9,472 CPU AMD a 64 core e 37,888 GPU Radeon Instinct MI250X che riesce a raggiungere la velocità di 1.67 exaFLOPS, diventando il primo exacale supercomputer. 
+
+% architettura gpu
+
+\section[Architettura hardware]{Architettura hardware}
+
+Le GPU si distinguono dalle CPU tradizionali per la loro capacità di gestire compiti altamente paralleli e intensi dal punto di vista computazionale. Le principali differenze a livello architetturale sono: 
+
+\begin{itemize}
+    \item migliaia di core indipendenti
+    \item memoria globale per archiviare dati e istruzioni
+    \item memoria locale di ogni core per archiviazione temporanea dei dati
+    \item unità di controllo per coordinare le operazione di calcolo e il flusso dati tra memoria e core, distribuendo i carichi di lavoro
+    \item architettura SIMD che consente di eseguire la stessa istruzione su più dati contemporaneamente
+\end{itemize}
+
+Per scrivere software per GPU, vengono utilizzate API, come CUDA o OpenCL. Queste API consentono ai programmatori di scrivere codice parallelo e sfruttare appieno il potenziale di calcolo delle GPU.
+
+%% Immagini sull'architettura GPU
+
+
+%% Spiegazione CUDA
+
+%% esempio programma cuda
+
+
+%% thread blocchi e griglie cuda
+
+%% OpenCL
+
+%% Spiegare OpenCL/OpenGL -> Vulkan
+
+
+
+% 2. **Stato dell'arte:**
+%    - Fornisci una panoramica sullo stato dell'arte del GPU computing, inclusi i progressi recenti, le tecnologie chiave e le applicazioni più rilevanti.
+%    - Descrivi le principali architetture GPU (ad esempio, NVIDIA CUDA, AMD Stream) e le loro caratteristiche.
+
+% 3. **Architettura delle GPU:**
+%    - Approfondisci l'architettura delle GPU, spiegando i componenti chiave come i core di calcolo, la gerarchia della memoria e i meccanismi di parallelismo.
+%    - Illustra come l'architettura delle GPU si differenzia da quella delle CPU tradizionali.
+
+% 4. **Programmazione parallela:**
+%    - Descrivi i concetti fondamentali della programmazione parallela, compresi i thread, i blocchi, e le griglie in CUDA o strutture simili nelle altre architetture.
+%    - Spiega come scrivere codice parallelo e ottimizzato per le GPU, evidenziando le sfide e le best practice.
+
+% 5. **Applicazioni di GPU computing:**
+%    - Dedica un capitolo alle diverse applicazioni del GPU computing in settori come il machine learning, la simulazione scientifica, la grafica, il calcolo finanziario, ecc.
+%    - Esamina studi di caso o progetti che dimostrino l'efficacia delle GPU in questi contesti.
+
+% 6. **Strumenti e sviluppo software:**
+%    - Presenta gli strumenti e i framework utilizzati per lo sviluppo di applicazioni GPU, come CUDA Toolkit, cuDNN per il deep learning, ecc.
+%    - Illustra le best practice per il debugging e la profilazione del codice su GPU.
+
+% 7. **Risultati e sperimentazioni:**
+%    - Riporta i risultati delle tue sperimentazioni o studi di caso, dimostrando l'impatto del GPU computing sulle prestazioni delle applicazioni.
+%    - Utilizza grafici e dati per supportare le tue conclusioni.
+
+% 8. **Discussione:**
+%    - Discuti dei vantaggi e dei limiti del GPU computing.
+%    - Rifletti sulle sfide e le possibili evoluzioni future di questa tecnologia.
+
+% 9. **Conclusioni:**
+%    - Riassumi i punti chiave e le scoperte principali della tua tesi.
+%    - Sottolinea l'importanza delle tue ricerche e le possibili applicazioni o sviluppi futuri.
+
+\section[Programmazione GPGPU]{Programmazione GPGPU}
+
+
+% % use [][] to prepend/postpone text to the citation
+% \cite[Hi][Goofy]{IEEEexample:article_typical}
+
+% \si{\kilo\gram\per\second}
+
+% % generic figure
+% \begin{figure}[h]
+% \centering
+% % \includegraphics[width=.9\linewidth]{images/logo/logoPoliTo_with_name_wrong.png}
+% \caption{Hi}
+% \label{fig:hi}
+% \end{figure}
+
+% % use [] to set name for ToC
+% \section[Extremely long name with manual linebreak which otherwise would not fit the page]{Extremely long name with manual linebreak\\which otherwise would not fit the page} % ok with fontsize=12pt
+
+% % list
+% \begin{enumerate}
+%     \item A
+%     \item B
+%     \item C
+% \end{enumerate}
+
+% % minipage to put two images in the same figure
+% \begin{figure}[h]
+%     \centering
+%     \begin{minipage}[t]{.49\linewidth}
+%     \begin{figure}[H]
+% 	\centering
+% 	% \includegraphics[width=\linewidth]{images/logo/logoPoliTo_with_name_low_quality.jpg}
+% 	\caption{HI}
+% 	\label{fig:c}
+%     \end{figure}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}[t]{.49\linewidth}
+%     \begin{figure}[H]
+% 	\centering
+% 	% svg inclusion, requires inkscape
+% 	% \includesvg[width=\linewidth]{images/artificial_neural_network.svg}
+% 	\caption{SVG}
+% 	\label{fig:svg}
+%     \end{figure}
+%     \end{minipage}
+% \end{figure}
+
+% \begin{table}[]
+%     \centering
+%     \setcellgapes{3pt}
+%     \makegapedcells
+%     \begin{tabular}{|c|c|c}
+%     \hline
+%     ReLU & $f(x) = \begin{cases}
+% 	0 & \text{for } x \le 0\\
+% 	x & \text{for } x > 0\end{cases}$ \\ \hline
+%     Softmax & $f_i(\vec{x}) = \dfrac{e^{x_i}}{\sum_{j=1}^J e^{x_j}} i = 1, ..., J$ \\ \hline
+%     tanh & $f(x)=\tanh(x)=\dfrac{(e^{x} - e^{-x})}{(e^{x} + e^{-x})}$ \\ \hline
+%     \end{tabular}
+%     \caption{Examples of activation functions, operating either element-wise or vector-wise, depending on the function}
+%     \label{tab:activation_functions}
+% \end{table}
+
+% \begin{equation}
+%     \label{eq:fully_connected}
+%     output = f_{activation}\left(\displaystyle\sum_{\#neurons} input_i + bias\right)
+% \end{equation}
+
+% \begin{table}
+%     \centering
+%     \begin{adjustbox}{width={0.9\textwidth},totalheight={\textheight},keepaspectratio} % needed if the table overflows the margins, requires adjustbox package
+%     \setcellgapes{3pt}
+%     \makegapedcells
+%     \begin{tabular}{|c|c|}
+%     \hline
+%     MSE / L2 Loss / Quadratic Loss & $\dfrac{\sum_{i=1}^{N} \left(y_i - \hat{y}_i\right)^2}{N}$ \\ \hline
+%     \makecell{(Binary) Cross Entropy \\ (average reduction on higher dimensions)} & $\dfrac{\sum_{i=1}^{N} \sum_{j=1}^{C} \hat{y}_i \log\left(y_{i,j}\right)}{N}$ \\ \hline
+%     \makecell{Categorical Cross Entropy \\ (sum reduction on higher dimensions)} & $- \sum_{i=1}^{N} \hat{y}_i +  \log\left(\sum_{i=1}^{N} \sum_{j=1}^{C} y_{i,j}\right)$ \\ \hline
+%     \end{tabular}
+%     \end{adjustbox} % must be closed before label and caption
+%     \caption{$y$ is the output of the network, $N$ is the batch size multiplied by the number of outputs (e.g. pixels), $C$ is the number of classes and $\hat{y}$ is the correct output.}
+%     \label{tab:loss_functions}
+% \end{table}
+
+
+% \begin{algorithm}
+% \caption{Adam optimizer algorithm. All operations are element-wise, even powers. Good values for the constants are $\alpha=0.001, \beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$. $\epsilon$ is needed to guarantee numerical stability.}
+% \label{alg:adam_optimizer}
+% \begin{algorithmic}[1]
+% \Procedure{Adam}{$\alpha, \beta_1, \beta_2, f, \theta_0$}
+% \LineComment{$\alpha$ is the stepsize}
+% \LineComment{$\beta_1, \beta_2 \in \left[0, 1\right)$ are the exponential decay rates for the moment estimates}
+% \LineComment{$f\left(\theta\right)$ is the objective function to optimize}
+% \LineComment{$\theta_0$ is the initial vector of parameters which will be optimized}
+% \LineComment{Initialization}
+% \State $m_0 \gets 0$
+% \Comment{First moment estimate vector set to 0}
+% \State $v_0 \gets 0$
+% \Comment{Second moment estimate vector set to 0}
+% \State $t \gets 0$
+% \Comment{Timestep set to 0}
+% \LineComment{Execution}
+% \While{$\theta_t$ not converged}
+% \State $t \gets t + 1$
+% \Comment{Update timestep}
+% \LineComment{Gradients are computed w.r.t the parameters to optimize}
+% \LineComment{using the value of the objective function}
+% \LineComment{at the previous timestep}
+% \State $g_t \gets \nabla_\theta f\left(\theta_{t - 1}\right)$
+% \LineComment{Update of first-moment and second-moment estimates using}
+% \LineComment{previous value and new gradients, biased}
+% \State $m_t \gets \beta_1 \cdot m_{t - 1} + \left( 1 - \beta_1 \right) \cdot g_t$
+% \State $v_t \gets \beta_2 \cdot v_{t - 1} + \left(1 - \beta_2 \right) \cdot g_t^2$
+% \LineComment{Bias-correction of estimates}
+% \State $\hat{m}_t \gets \dfrac{m_t}{1 - \beta_1^t}$
+% \State $\hat{v}_t \gets \dfrac{v_t}{1 - \beta_2^t}$
+% \State $\theta_t \gets \theta_{t - 1} - \alpha \cdot \dfrac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$
+% \Comment{Update parameters}
+% \EndWhile
+% \State \textbf{return} $\theta_t$
+% \Comment{Optimized parameters are returned}
+% \EndProcedure
+% %\end{small}
+% \end{algorithmic}
+% \end{algorithm}
+
+% % bullet points
+% \begin{itemize}
+%     \item A
+%     \item B
+%     \item C
+% \end{itemize}
+
