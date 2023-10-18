@@ -1,43 +1,7 @@
 \chapter{GPU Computing}
 \label{sec:gpu}
 
-Questo capitolo fornisce un'introduzione al GPU computing, per rendere il progetto di tesi più fruibile al lettore. Il capitolo è composto da ... sezioni:
 
-\begin{itemize}
-    \item breve storia di come le GPU sono diventate importanti in ambito scientifico
-    \item architettura di una GPU e differenze con le CPU
-    \item metodi di programmazione con delle GPU
-\end{itemize}
-
-\section[Breve storia delle GPU in ambito scientifico]{Storia delle GPU in ambito scientifico}
-
-Le GPU sono state originariamente sviluppate per scopi legati all'elaborazione grafica, in particolare per migliorare la resa delle immagini e la grafica 3D nei videogiochi, nelle applicazioni CAD e nei software di modellazione e rendering. Le esigenze di una grafica sempre più dettagliata e complessa hanno portato alla creazione di unità di elaborazione specializzate in grado di gestire gli intensi calcoli in modo parallelo. Con il tempo è emerso che le GPU potevano essere sfruttate per scopi diversi dall'elaborazione grafica: i loro processori palalleli si sono rivelati utili per applicazioni scientifiche e tecniche che richiedavano elaborazione intensive, come la simulazione, l'analisi dei dati e il calcolo scientifico. Adesso in particolare le GPU si sono rivelate particolarmente adatte per l'addestramento e l'implementaione di reti neurali, diventando uno strumento fondamentale per l'esplosione dell'intelligenza atrificiale e del machine learning.
-
-% GPGPU
-
-Quando si parla di GPGPU si intende l'utilizzo delle GPU per compiti di calcolo generale, rendendole molto più che semplici dispositivi per l'elaborazione grafica. Questo è fondamentale per accelerare algoritmi che richiedono enorme quantità di risorse, unicamente a patto che la computazione sia parallelizzabile su più processori.
-Calcoli che prima richiedevano l'uso di supercomputer per essere eseguiti in tempi accettabili adesso si possono eseguire in una normale GPU desktop. 
-Nel 2011 secondo la TOP500 (https://www.top500.org/ classifica che descrive nel dettaglio i 500 sistemi informatici non distribuiti più potenti al mondo) il Tianhe-1A, montando delle GPU Nvidia Tesla M2050 (todo: mettere link), si posizionava secondo raggiungendo i 4.7 petaFLOPS di velocità. 
-Nel 2012 invece in primo supercomputer al mondo divenne il Titan (todo: aggiustare link https://nvidianews.nvidia.com/news/nvidia-powers-titan-world-s-fastest-supercomputer-for-open-scientific-research-6622738) montando 18,688 GPU Nvida Tesla K20X con altrettante CPU AMD Opteron raggiungendo i 17.59 petaFLOPS.
-Da quell'anno in poi divenne chiaro che le GPU erano diventate un componente essenziale nell'HPC quanto nel desktop computing e dato che il supercomputing il motore trainante di molte delle tecnologie che vediamo nei processori moderni, si è sviluppato un circolo virtuolso per cui la necessità di processori sempre più veloci per elaborare dataset sempre più grandi, porta l'industria a produrre computer sempre più potenti. Ad oggi si sta delineando una divisione netta nella produzione di GPU per uso desktop e per uso scientifico, i principali produttori, quali AMD, Nvidia e, più recentemente, Intel, rilasciano prodotti ottimizzati per l'uno o per l'altro mercato, con lo scopo di soddisfare i requisiti richiesti da ogni settore. A giugno 2023 il supercomputer più veloce al mondo è il Frontier con 9,472 CPU AMD a 64 core e 37,888 GPU Radeon Instinct MI250X che riesce a raggiungere la velocità di 1.67 exaFLOPS, diventando il primo exacale supercomputer. 
-
-% architettura gpu
-
-\section[Architettura hardware]{Architettura hardware}
-
-Le GPU si distinguono dalle CPU tradizionali per la loro capacità di gestire compiti altamente paralleli e intensi dal punto di vista computazionale. Le principali differenze a livello architetturale sono: 
-
-\begin{itemize}
-    \item migliaia di core indipendenti
-    \item memoria globale per archiviare dati e istruzioni
-    \item memoria locale di ogni core per archiviazione temporanea dei dati
-    \item unità di controllo per coordinare le operazione di calcolo e il flusso dati tra memoria e core, distribuendo i carichi di lavoro
-    \item architettura SIMD che consente di eseguire la stessa istruzione su più dati contemporaneamente
-\end{itemize}
-
-Per scrivere software per GPU, vengono utilizzate API, come CUDA o OpenCL. Queste API consentono ai programmatori di scrivere codice parallelo e sfruttare appieno il potenziale di calcolo delle GPU.
-
-%% Immagini sull'architettura GPU
 
 
 %% Spiegazione CUDA
@@ -89,7 +53,7 @@ Per scrivere software per GPU, vengono utilizzate API, come CUDA o OpenCL. Quest
 
 
 % % use [][] to prepend/postpone text to the citation
-% \cite[Hi][Goofy]{IEEEexample:article_typical}
+\cite[]{Nvidia:CUDA}
 
 % \si{\kilo\gram\per\second}
 

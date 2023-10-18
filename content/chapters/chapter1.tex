@@ -1,6 +1,46 @@
 \chapter{Introduzione}
 \label{sec:intro}
 
+
+\section[Background]{Background}
+
+Sin dalla nascita delle prime \gls{CPU}, l'obiettivo principale degli ingegneri è stato quello di aumentare le prestazioni dei processori a livello hardware. Sono state sviluppate e applicate con successo diverse tecniche per aumentare le prestazioni, che includono l'uso di CPU pipelined per uamentare il throughput delle istruzioni, multilevel cache per nascondere la latenza di memoria e instruction level parallelism e processori superscalari per eseguire più istruzioni durante un ciclo di clock.
+Quando ci si è accorti che queste metodologie non sarebbero bastate per tenere viva la legge di Moore \cite[]{Moore:law}, per aumentare ulteriormente le prestazioni si è passato a un approccio multi-core, che ha portato a una nuova forma di parallelismo, in cui alcune parti dell'applicazione possono essere eseguite in contemporanea su diversi core della stessa CPU. L'impatto delle CPU multi-core per accelerare le applicazioni è stato considerevole, ma il numero limitato di core che possono essere presenti sulla singola unità CPU è uno dei maggiori ostacoli che tutt'oggi limita l'incremento delle prestazioni.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=.9\linewidth]{images/chapter1/moore_law2.png}
+\caption{Legge di Moore}
+\label{fig:moore_law}
+\end{figure}
+
+% GPU
+
+Le \gls{GPU} sono hardware specializzato che prende a piene mani il concetto di multi-core e lo esalta, al punto da avere tantissimi core più semplici e lenti dei core di una CPU, ma con un più alto throughput totale. 
+Originariamente sono state sviluppate per scopi legati all'elaborazione grafica, in particolare, per migliorare la resa delle immagini e la grafica 3D nei videogiochi, nelle applicazioni \gls{CAD} e nei software di modellazione e renderin. In seguito, le esigenze di una grafica sempre più dettagliata e complessa ha portato alla creazione di unità di elaborazione specializzate con un'architettura che le rende energicamente più efficienti di una CPU per algoritmi che processano grossi blocchi di dati in parallelo. Le GPU sono state quindi fruttate, anche per scopi diversi dall'elaborazione grafica e si sono rivelate particolamenti utili per applicazioni scientifiche, \gls{HPC} e tecniche che richiedono elaborazione intensive, come la simulazione, l'analisi dei dati e il calcolo scientifico. Adesso in particolare le GPU si sono particolarmente adatte per l'addestramento e l'implementazione di reti neurali, diventando uno strumento fondamentale per l'esplosione dell'intelligenza atrificiale e del machine learning.
+
+% GPGPU
+
+Quando si parla di \gls{GPGPU} si intende l'utilizzo delle GPU per compiti di calcolo generale, per renderle molto più che semplici dispositivi per l'elaborazione grafica. Questo è fondamentale per accelerare algoritmi di calcolo che richiedono enorme quantità di risorse, a patto che la computazione sia parallelizzabile su più processori.
+Calcoli che prima richiedevano l'uso di supercomputer, per essere eseguiti, adesso si possono eseguire con una normale GPU desktop. 
+Nel 2011 secondo la lista Top500, che classifica e descrive nel dettaglio i 500 sistemi informatici non distribuiti più potenti al mondo, il Tianhe-1A risultava il secondo supercomputer più potente al mondo, raggiungendo i 4.7 petaFLOPS di potenza computazionale, grazie a un sistema basasto sulle GPU Nvidia Tesla M2050 \cite[]{Tianhe-1A:link}. Solamente un anno dopo, invece, in in vetta alla classifica si trovò il Titan \cite[]{Titan:link} con un sistema basato sulle più recenti e performanti GPU Nvida Tesla K20X raggiungendo i 17.59 petaFLOPS di potenza.
+Da quell'anno in poi divenne chiaro che le GPU erano diventate un componente essenziale nell'HPC tanto quanto lo erano nel desktop computing e dato che il supercomputing è il motore trainante di molte delle tecnologie che vediamo nei processori moderni, si è venuto a creare un circolo virtuoso per cui la necessità di processori sempre più veloci per elaborare dataset sempre più grandi, ha porta l'industria a produrre computer sempre più potenti. Ad oggi si sta delineando una divisione netta nella produzione di GPU per uso desktop e per uso scientifico, i principali produttori, quali AMD, Nvidia e, più recentemente, Intel, rilasciano prodotti ottimizzati per l'uno o per l'altro mercato, con lo scopo di soddisfare i requisiti richiesti da ogni settore. A giugno 2023 il supercomputer più veloce al mondo è il Frontier \cite[]{Frontier:link} con un sistema basato sulle GPU Radeon Instinct MI250X con coi riesce a raggiungere i 1.67 exaFLOPS, divenendo il primo exacale supercomputer al mondo. L'incremento così repentino delle performance ha portato gli esperti di settore a coniare (?) la legge di Huang \cite[]{Huang:law}, per cui le performance delle GPU più che raddoppiano ogni due anni. In pratica un'equivalente della di Moore, ma applicata alle GPU.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=.9\linewidth]{images/chapter1/supercomputer_flops.png}
+\caption{Potenza dei supercomputer negli anni}
+\label{fig:supercomputer_flops}
+\end{figure}
+    
+%% Librerie GPU programming
+
+Per poter programmare le GPU è risutanto necessario sviluppare delle \gls{API} che garantissero l'esecuzione del programma senza un'esplicita conversione dai dati in formato grafico. Le API oggi più utilizzate sono le \gls{CUDA} API di Nvidia \cite[]{Nvidia:CUDA} e le OpenCL API di Khronos Group \cite[]{KG:OpenCL}. Le API CUDA sfruttano l'omonima architettura delle GPU Nvidia e sono in formato proprietario, mentre le API OpenCL, come suggerisce il nome, sono uno standard aperto royalty-free e supportano la maggior parte delle archittetture GPU. Sebbene avesse prestazioni di molto inferiori rispetto a CUDA, OpenCL è storicamente stata la prima scelta per applicazioni multi-piattaforma, proprio per la sua natura open e la vasta quantità di hardware supportato. Nel 2015 Khronos Group annuncia le Vulkan API \cite[]{KG:Vulkan} e SPIR-V \cite[]{KG:SPIR-V}. Vulkan è una API grafica e di calcolo che offre un accesso ad alta efficienza e multi-piattaforma alle GPU moderne utilizzate in una vasta gamma di dispositivi, da PC e console ai telefoni cellulari e alle piattaforme embedded. Vulkan è stato progettato per sfruttare pesantemente il multithreading, permettendo la generazione di carichi di lavoro asincroni da parte di thread mulitpli della CPU che eseguono il codice sulla GPU solo dopo una esplicita sottomissione. Inoltre, la sua natura `close-to-metal' permette un controllo oculato delle risorse della GPU: lo sviluppatore è resposabile della sincronizzazione, allocazione di memoria e della sottomissione del lavoro, avendo così minor overhead del driver rispetto ad approcci come CUDA e OpenCL.
+
+\section[Problema e Contributi]{Problema e Contributi}
+
+\section[Struttura della tesi]{Struttura della tesi}
+
 %% super computer e cloud per AI
 
 %% cuda per gpgpu
