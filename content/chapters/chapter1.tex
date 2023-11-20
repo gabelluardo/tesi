@@ -7,7 +7,7 @@
 Sin dalla nascita delle prime \gls{CPU}, l'obiettivo principale degli ingegneri è stato quello di aumentare le prestazioni dei processori a livello hardware. Sono state sviluppate e applicate con successo diverse tecniche per aumentare le prestazioni, che includono l'uso di CPU pipelined per uamentare il throughput delle istruzioni, multilevel cache per nascondere la latenza di memoria e instruction level parallelism e processori superscalari per eseguire più istruzioni durante un ciclo di clock.
 Quando ci si è accorti che queste metodologie non sarebbero bastate per tenere viva la legge di Moore \cite[]{Moore:law}, per aumentare ulteriormente le prestazioni si è passato a un approccio multi-core, che ha portato a una nuova forma di parallelismo, in cui alcune parti dell'applicazione possono essere eseguite in contemporanea su diversi core della stessa CPU. L'impatto delle CPU multi-core per accelerare le applicazioni è stato considerevole, ma il numero limitato di core che possono essere presenti sulla singola unità CPU è uno dei maggiori ostacoli che tutt'oggi limita l'incremento delle prestazioni.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=.9\linewidth]{images/chapter1/moore_law2.png}
 \caption{Legge di Moore}
@@ -26,7 +26,7 @@ Calcoli che prima richiedevano l'uso di supercomputer, per essere eseguiti, ades
 Nel 2011 secondo la lista Top500, che classifica e descrive nel dettaglio i 500 sistemi informatici non distribuiti più potenti al mondo, il Tianhe-1A risultava il secondo supercomputer più potente al mondo, raggiungendo i 4.7 petaFLOPS di potenza computazionale, grazie a un sistema basasto sulle GPU Nvidia Tesla M2050 \cite[]{Tianhe-1A:link}. Solamente un anno dopo, invece, in in vetta alla classifica si trovò il Titan \cite[]{Titan:link} con un sistema basato sulle più recenti e performanti GPU Nvida Tesla K20X raggiungendo i 17.59 petaFLOPS di potenza.
 Da quell'anno in poi divenne chiaro che le GPU erano diventate un componente essenziale nell'HPC tanto quanto lo erano nel desktop computing e dato che il supercomputing è il motore trainante di molte delle tecnologie che vediamo nei processori moderni, si è venuto a creare un circolo virtuoso per cui la necessità di processori sempre più veloci per elaborare dataset sempre più grandi, ha porta l'industria a produrre computer sempre più potenti. Ad oggi si sta delineando una divisione netta nella produzione di GPU per uso desktop e per uso scientifico, i principali produttori, quali AMD, Nvidia e, più recentemente, Intel, rilasciano prodotti ottimizzati per l'uno o per l'altro mercato, con lo scopo di soddisfare i requisiti richiesti da ogni settore. A giugno 2023 il supercomputer più veloce al mondo è il Frontier \cite[]{Frontier:link} con un sistema basato sulle GPU Radeon Instinct MI250X con coi riesce a raggiungere i 1.67 exaFLOPS, divenendo il primo exacale supercomputer al mondo. L'incremento così repentino delle performance ha portato gli esperti di settore a coniare (?) la legge di Huang \cite[]{Huang:law}, per cui le performance delle GPU più che raddoppiano ogni due anni. In pratica un'equivalente della di Moore, ma applicata alle GPU.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=.9\linewidth]{images/chapter1/supercomputer_flops.png}
 \caption{Potenza dei supercomputer negli anni}
@@ -67,8 +67,7 @@ Si è provato a rispondere a queste domande nel senguente modo:
 
 \section[Struttura della tesi]{Struttura della tesi}
 
-% TODO quando finiti tutti i capitoli
-
+!! TODO quando finiti tutti i capitoli
 
 Il lavoro è stato progettato, sviluppato e testato con il supporto del team di Quantum Computing di Data Reply con sede a Torino. 
 
