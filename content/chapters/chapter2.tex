@@ -2,6 +2,62 @@
 \label{sec:gpu}
 
 
+L'obiettivo di questo capitolo è presentare i concetti fondamentali dei sistemi eterogenei e della programmazione GPU, con particolare attenzione ai framework CUDA e Vulkan. Ottenere una visione approfondita di tali concetti contribuirà a una migliore comprensione delle scelte tecnologiche e dei dettagli implementativi discussi nel capitolo finale. La prima sezione si concentra sul modello di programmazione GPGPU, la seconda analizzerà il GPU computing dal punto di vista hardware, mentre la terza fornirà un'analisi dettagliata di CUDA e Vulkan da una prospettiva software.
+
+\section[General-purpose computing su GPU]{General-purpose computing su GPU}
+
+Sebbene le CPU e le GPU siano entrambi processori che eseguono istruzioni macchina, esse si differenziano soprattutto nell'approccio usato nell'eseguire programmi paralleli: mentre le CPU multi-core possono adottare un approccio di tipo Multiple Instruction Multiple Data (MIMD) o Single Instruction Multiple Data (SIMD), le GPU seguono un modello di istruzioni Single Instruction Multiple Thread (SIMT). Lo sviluppo delle GPU è stato storicamente centrato nell'ambito delle principali industria dei videogiochi, il cui impegno tecnologico è sempre stato finalizzato a offrire esperienze virtuali via via più realistiche. Per raggiungere questo obiettivo, sono richiesti un numero considerevole di calcoli (come rotazioni e traslazioni), tipicamente sotto forma di operazioni in virgola mobile per ogni pixel dello schermo. Le GPU sono state concepite appositamente come dispositivi ottimizzati per computazioni altamente parallele, come nel caso del rendering grafico. Le architetture delle GPU sono strutturate seguendo il modello multi-thread anziché multi-core, mettendo quindi l'accento sull'ottimizzazione del trattamento dei dati piuttosto che sulla memorizzazione e sul controllo del flusso dei dati.
+Entrambi i modelli sono rappresentati nella figura 2.1.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/cpu_vs_gpu_model.png}
+    \caption{Modelli multi-core e multi-thread}
+    \label{fig:cpu_vs_gpu_model}
+\end{figure}
+
+Il paradigma di GPGPU consente di sfruttare la potenza di calcolo delle GPU non solo per la grafica dei videogiochi, ma anche per eseguire calcoli generici di natura scientifica ed ingegneristica, come l'ottimizzazione nella simulazione di sistemi fisici reali. Grazie alla GPGPU, il trasferimento di dati tra CPU e GPU diventa bidirezionale e, di conseguenza, in sistemi che richiedono numerose operazioni su grandi quantità di dati si può osservare un notevole miglioramento delle prestazioni. Un'implementazione intelligente di un paradigma SIMD su GPU può conseguire un aumento di velocità fino a 100 volte rispetto a un'implementazione sequenziale su un singolo core CPU. Secondo la tassonomia di Flynn, un sistema è classificato come SIMD (Single Instruction Multiple Data) se esegue una singola istruzione, o anche un piccolo insieme di istruzioni, in parallelo su un vasto numero di dati.
+
+In genere, un sistema non può essere parallelizzato in tutte le sue parti, limitando l'accelerazione delle prestazioni a una piccola porzione del codice. Pertanto, è necessario progettare sistemi in cui alcune parti siano concepite in parallelo, mentre altre in modo seriale. Per questo motivo, nel modello GPGPU, CPU e GPU collaborano tra loro, dando origine a un modello di elaborazione eterogenea in cui la CPU gestisce la parte sequenziale, mente la GPU la parte comutazionalmente onerosa.
+
+La figura 2.2 mostra il modello di un sistema eterogeneo.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/het_model2.png}
+    \caption{Modello di un sistema eterogeneo}
+    \label{fig:het_model}
+\end{figure}
+
+
+Inizialmente, le GPU e i linguaggi di programmazione parallela erano destinati a un mercato molto diverso rispetto alle CPU. Nella programmazione "classica" delle CPU, la compatibilità tra diverse versioni dello stesso software è stata fin dall'inizio un requisito fondamentale, mentre l'innovazione in termini di miglioramento delle GPU ha spesso comportato cambiamenti drastici nell'hardware. Queste evoluzioni tecnologiche hanno portato a una perdita di portabilità tra i diversi modelli: l'introduzione di nuove tecnologie hardware ha portato a proposte di architetture GPU completamente nuove, con significative differenze tra loro. Di conseguenza, queste nuove architetture richiedevano quasi sempre una ridefinizione completa dei relativi codici. 
+
+
+I principali standard per l'elaborazione parallela sono MPI, OpenMP.
+
+
+\begin{itemize}
+    \item \textbf{MPI}: standard per la programmazione parallela progettato per sistemi di memoria distribuita, utilizzato in ambienti di HPC in cui più processori o nodi comunicano scambiandosi messaggi. Solitamente viene usato per l'architettura di supercomputer, nei queli migialia di nodi sono connessi attraverso una rete dedicata. Ogni problema viene suddiviso in diversi sottoproblemi, ognuno dei quali è risolto da un nodo specifico. Quest modello è poco flessibile e richiede alto cosumo di risorse e soprattuo una rete dedicata molto veloce.
+    \item \textbf{OpenMP}: standard che offre un insieme di direttive del compilatore e routine di libreria per il multiprocessing su singole macchine a memoria condivisa, comunemente usato per parallelizzare cicli e altre regionei di codice per sfruttare i processori multi-core. Dato che il software deve essere eseguito sulla stessa macchina questo modello è relativamente più semplice del precedente, ma limitato dal punto di vista prestazionale.
+\end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/mpi_openmp.png}
+    \caption{Architettura MPI e OpenMP}
+    \label{fig:mpi_openmp}
+\end{figure}
+
+OpenMP consente al programmatore di raggiungere un alto livello di parallelizzazione, specificando le porzioni specifiche del codice da ottimizzare. D'altra parte, MPI utilizza esplicitamente la comunicazione tra processi per aumentare la quantità di lavoro. A causa della loro natura intrinsecamente diversa, è raro utilizzare contemporaneamente questi standard.
+
+Per fornire un framework di programmazione eterogeneo NVIDIA ha introdotto CUDA: uno strumento potentissimo perché consente di utilizzare OpenMP e MPI simultaneamente. L'acronimo CUDA, infatti, significa Compute Unified Device Architecture. Ci si riferise a CUDA non è solo quando si parla del linguaggio di programmazione, ma anche dell'architettura hardware. Per sfruttare appieno questo framework, è necessaria una GPU compatibile con CUDA e dato che è sviluppato da NVIDIA, tutte le GPU della sua ultima generazione lo supportano. L'architettura tipica di una GPU NVIDIA compatibile con CUDA è illustrata nella figura 2.4. Le differenze tra i vari modelli possono essere individuate negli Streaming Multiprocessors (SMs) e nei Stream Processors (SPs), ma non ci si addentrerà ulteriormente in questo concetto. Ogni GPU attuale è dotata di gigabyte di memoria globale denominata Graphics Double Data Rate (GDDR), Synchronous DRAM (SDRAM).
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/cuda_arch.png}
+    \caption{Architettura di una GPU CUDA}
+    \label{fig:cuda_arch}
+\end{figure}
 
 
 %% Spiegazione CUDA
@@ -53,7 +109,6 @@
 
 
 % % use [][] to prepend/postpone text to the citation
-\cite[]{Nvidia:CUDA}
 
 % \si{\kilo\gram\per\second}
 
