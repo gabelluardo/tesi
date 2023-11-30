@@ -2,7 +2,7 @@
 \label{sec:intro}
 
 
-\section[Background]{Background}
+\section[Programmazione su GPU]{Programmazione su GPU}
 
 Sin dalla nascita delle prime \gls{CPU}, l'obiettivo principale degli ingegneri è stato quello di aumentare le prestazioni dei processori a livello hardware. Sono state sviluppate e applicate con successo diverse tecniche per aumentare le prestazioni, che includono l'uso di CPU pipelined per uamentare il throughput delle istruzioni, multilevel cache per nascondere la latenza di memoria e instruction level parallelism e processori superscalari per eseguire più istruzioni durante un ciclo di clock.
 Quando ci si è accorti che queste metodologie non sarebbero bastate per tenere viva la legge di Moore \cite[]{Moore:law}, per aumentare ulteriormente le prestazioni si è passato a un approccio multi-core, che ha portato a una nuova forma di parallelismo, in cui alcune parti dell'applicazione possono essere eseguite in contemporanea su diversi core della stessa CPU. L'impatto delle CPU multi-core per accelerare le applicazioni è stato considerevole, ma il numero limitato di core che possono essere presenti sulla singola unità CPU è uno dei maggiori ostacoli che tutt'oggi limita l'incremento delle prestazioni. In fig. \ref{fig:moore_law} è mostrato come grazie alla tecnologia multi-core la legge di Moore è considerabile ancora valida.

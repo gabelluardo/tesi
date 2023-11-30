@@ -1,5 +1,5 @@
-\chapter{GPU Computing}
-\label{sec:gpu}
+\chapter{Background Tecnico}
+\label{sec:background}
 
 
 L'obiettivo di questo capitolo è presentare i concetti fondamentali dei sistemi eterogenei e della programmazione GPU, con particolare attenzione ai framework CUDA e Vulkan. Ottenere una visione approfondita di tali concetti contribuirà a una migliore comprensione delle scelte tecnologiche e dei dettagli implementativi discussi nel capitolo del progetto finale. Il capitolo è diviso in due senzioni: la prima si concentra sul modello di programmazione GPGPU, mentre la seconda fornirà un'analisi dettagliata di CUDA e Vulkan per lo sviluppo di software.
@@ -45,7 +45,7 @@ I principali standard per l'elaborazione parallela sono MPI, OpenMP.
     \label{fig:mpi_openmp}
 \end{figure}
 
-Il modello OpenMP consente al programmatore di raggiungere un alto livello di parallelizzazione, specificando, in modo semplice ,le porzioni specifiche del codice da ottimizzare. D'altra parte, in MPI i nodi non condividono la memoria e tutti i dati sono condivisi attraverso messaggi, garantendo elevata scalabilità anche su centinaia di miglia di nodi; implementarlo, però,  può risultare difficile proprio per la mancanza di memdoia condivisa tra i nodi. A causa della loro natura intrinsecamente diversa, è raro utilizzare contemporaneamente questi standard. In fig. \ref*{fig:mpi_openmp} è mostata la sostanziale differenza tra i due modelli.
+Il modello OpenMP consente al programmatore di raggiungere un alto livello di parallelizzazione, specificando, in modo semplice ,le porzioni specifiche del codice da ottimizzare. D'altra parte, in MPI i nodi non condividono la memoria e tutti i dati sono condivisi attraverso messaggi, garantendo elevata scalabilità anche su centinaia di miglia di nodi; implementarlo, però,  può risultare difficile proprio per la mancanza di memdoia condivisa tra i nodi. A causa della loro natura intrinsecamente diversa, è raro utilizzare contemporaneamente questi standard. In fig. \ref{fig:mpi_openmp} è mostata la sostanziale differenza tra i due modelli.
 
 Con l'introduzione di CUDA, NVIDIA ha fornito agli sviluppatori un framework in grado di combinare i vantaggi dei due standard. Con l'acronimo CUDA, che sta per Compute Unified Device Architecture, si intende non solo il linguaggio di programmazione, ma anche l'architettura hardware. Per sfruttare appieno questo framework, è necessaria una GPU compatibile con CUDA e, dato che è sviluppato da NVIDIA, tutte le loro GPU recenti lo supportano. L'architettura tipica di una GPU NVIDIA compatibile con CUDA è illustrata in fig. \ref{fig:cuda_arch}. Le differenze tra i vari modelli possono essere negli Streaming Multiprocessors (SMs) e nei Stream Processors (SPs), ma non ci si addentrerà ulteriormente in questo concetto. Ogni GPU recente è dotata di gigabyte di memoria dedicata denominata Graphics Double Data Rate (GDDR), un tipo di memoria SDRAM, usata per memorizzare temporaneamente informazioni necessarie alla computazione, evitando di doverle memorizzare nella memoria centrale di sistema, operazione che richiederebbe molto più tempo.
 
@@ -58,7 +58,7 @@ Con l'introduzione di CUDA, NVIDIA ha fornito agli sviluppatori un framework in 
 \end{figure}
 
 
-\section[CUDA e Vulkan]{CUDA e Vulkan}
+\section[Framework di programmazione su GPU]{Framework di programmazione su GPU}
 
 
 Con il rilascio di CUDA, nel 2007, NVIDIA commercializza la prima GPU che riserva aree specifiche di silicio per semplificare la programmazione parallela. Questo non rappresenta solo cambiamenti software, ma vennero aggiunte componenti hardware ai chip stessi. Nei chip G80 e nei loro successori dedicati al calcolo parallelo, i programmi CUDA non attraversano più l'interfaccia grafica. Invece, una nuova interfaccia di programmazione parallela ad uso generale gestisce le richieste dei programmi CUDA. Questa interfaccia di programmazione espande notevolmente i tipi di applicazioni che è possibile sviluppare per le GPU. Inoltre, anche tutti gli altri strati software furono ridisegnati, consentendo ai programmatori di utilizzare i familiari strumenti di programmazione C/C++. Sebene sia ancora possibile usare la vecchia interfaccia di programmazione basata su OpenGL, l'avvento di CUDA e il supporto al computing da parte di Nvida ha reso molto più facile e piacevole sviluppare applicazioni parallele eliminando la necessità di utilizzare API grafiche.
@@ -72,11 +72,11 @@ Solamente un anno dopo Khronos Group, un consorzio industriale che gestisce lo s
     \label{fig:vulkan_history}
 \end{figure}
 
-Col tempo, Khronos Group ha riconosciuto la necessità di unire le caratteristiche di grafica e calcolo in un'unica API. Vulkan è stata sviluppata con l'obiettivo di superare le limitazioni di OpenGL e di fornire un accesso più diretto alle risorse hardware, consentendo una maggiore parallelizzazione e un controllo più fine da parte degli sviluppatori. Vulkan offre una serie di funzionalità che lo rendono più efficiente e flessibile rispetto ad OpenGL, inclusa una migliore gestione delle risorse, un controllo più diretto sulla GPU, una maggiore parallelizzazione e una minore overhead di driver. Vulkan è progettata per essere più adatta agli sviluppatori che richiedono il massimo delle prestazioni all'hardware, come nei giochi e nelle applicazioni di realtà virtuale. In sintesi, Vulkan rappresenta una naturale evoluzione di OpenGL e OpenCL, cercando di unire le migliori caratteristiche di entrambe per fornire un'API più potente, efficiente e adatta alle moderne architetture hardware. In fig. \ref*{fig:vulkan_history} è visibile l'evoluzione nel tempo delle API rilasciate da Khronos Group. Sia OpenGL che OpenCL sopravvivono tutt'oggi per la facilità di sviluppo delle applicazioni e l'ampio supporto hardware, sebbene siano meno performanti di CUDA e Vulkan.
+Col tempo, Khronos Group ha riconosciuto la necessità di unire le caratteristiche di grafica e calcolo in un'unica API. Vulkan è stata sviluppata con l'obiettivo di superare le limitazioni di OpenGL e di fornire un accesso più diretto alle risorse hardware, consentendo una maggiore parallelizzazione e un controllo più fine da parte degli sviluppatori. Vulkan offre una serie di funzionalità che lo rendono più efficiente e flessibile rispetto ad OpenGL, inclusa una migliore gestione delle risorse, un controllo più diretto sulla GPU, una maggiore parallelizzazione e una minore overhead di driver. Vulkan è progettata per essere più adatta agli sviluppatori che richiedono il massimo delle prestazioni all'hardware, come nei giochi e nelle applicazioni di realtà virtuale. In sintesi, Vulkan rappresenta una naturale evoluzione di OpenGL e OpenCL, cercando di unire le migliori caratteristiche di entrambe per fornire un'API più potente, efficiente e adatta alle moderne architetture hardware. In fig. \ref{fig:vulkan_history} è visibile l'evoluzione nel tempo delle API rilasciate da Khronos Group. Sia OpenGL che OpenCL sopravvivono tutt'oggi per la facilità di sviluppo delle applicazioni e l'ampio supporto hardware, sebbene siano meno performanti di CUDA e Vulkan.
 
 \subsection[CUDA]{CUDA}
 
-La struttura di un programma CUDA riflette la coesistenza di un host (CPU) e uno o più device (GPU) nel computer. Ogni file di origine CUDA può contenere sia di codice host che codice device. Per impostazione predefinita, qualsiasi programma C/C++ è un programma CUDA che contiene solo codice host. È possibile aggiungere funzioni e dichiarazioni di dati per il dispositivo in qualsiasi file di origine C/C++. Le dichiarazioni di funzioni o dati per il dispositivo sono chiaramente contrassegnate con particolari keyword di CUDA. Queste sono tipicamente funzioni che mostrano una grande quantità di parallelismo dei dati. Il codice deve essere compilato da un compilatore che riconosce e comprende queste dichiarazioni aggiuntive. Il compilatore CUDA ufficiale è NVCC (NVIDIA C Compiler) prodotto da NVIDIA.
+La struttura di un programma CUDA riflette la coesistenza di un host (CPU) e uno o più device (GPU) nel computer. Ogni file sorgente CUDA può contenere sia di codice host che codice device. Si può considerare un qualsiasi programma C/C++ come un programma CUDA che contiene solo codice host. È possibile aggiungere funzioni e dichiarazioni di dati per il device in qualsiasi file sorgente C/C++. Le dichiarazioni di funzioni o dati per il device sono chiaramente contrassegnate con particolari keyword di CUDA. Il codice deve essere compilato da un compilatore che riconosce e comprende queste dichiarazioni aggiuntive: il compilatore CUDA ufficiale è NVCC (NVIDIA C Compiler) prodotto da NVIDIA.
 
 \begin{figure}[ht]
     \centering
@@ -85,20 +85,123 @@ La struttura di un programma CUDA riflette la coesistenza di un host (CPU) e uno
     \label{fig:nvcc}
 \end{figure}
 
-NVCC elabora il programma CUDA, utilizzando le keyword CUDA per separare il codice host e il codice device. Il codice host è codice normale ANSI C, che viene ulteriormente compilato con i compilatori standard C/C++ dell'host e viene eseguito come un processo CPU tradizionale. Il codice device è contrassegnato con le keyword CUDA per etichettare le funzioni di parallelismo dei dati, chiamate kernel, e le relative strutture di dati associate. Il codice device viene ulteriormente compilato da un componente runtime di NVCC ed eseguito su un device GPU. L'esecuzione inizia sull'host e quando una funzione kernel viene chiamata, essa viene eseguita da un gran numero di thread sul device. Tutti i thread generati da un avvio del kernel sono collettivamente chiamati una ``grid''.
+NVCC elabora il programma CUDA, utilizzando le keyword CUDA per separare il codice host e il codice device. Il codice host è codice normale ANSI C, che viene ulteriormente compilato dai compilatori standard C/C++ dell'host e viene eseguito come un processo CPU tradizionale. Il codice device è contrassegnato con le keyword CUDA \verb|__device__| o \verb|__global__| per etichettare le funzioni di parallelismo dei dati, chiamate kernel, e le relative strutture di dati associate. Il codice device viene ulteriormente compilato da un componente runtime di NVCC ed eseguito su un device GPU. L'esecuzione inizia sull'host e quando una funzione kernel viene chiamata, essa viene eseguita parallelamente dai thread del device. L'insieme di thread generati da un avvio del kernel formano un ``blocco'', l'insieme dei blocchi formano una ``griglia''.
 
 \lstinputlisting[language=C++, caption=Somma di vettori in CUDA, label=lis:sum_vec]{code/cuda_example.cu} 
 
-Il codice in \ref*{lis:sum_vec} mostra un programma cuda che somma due vettori parallelizzando su GPU. La keyword \verb|__global__| indica che la funzione è un kernel CUDA che verrà eseguita in ogni thread della `grid' della GPU. I vettori vengono create nella memoria host, copiati nella memoria device, elaborati e il risultato della computazione si troverà nel vettore \verb|res_vec| in memoria device, e dovrà essere ricopiato in memoria host per potervi accedere dai pezzi di codice C/C++. Le funzioni \verb|cudaMalloc|, \verb|cudaFree| e \verb|cudaMemcpy| sono le equivalenti del C++ \verb|malloc|, \verb|free| e \verb|memcpy|, e gestiscono l'allocazione di memoria device e la copia di memoria tra host e device.
+Il codice in \ref*{lis:sum_vec} mostra un programma CUDA che somma due vettori in parallelo su GPU. La keyword \verb|__global__| indica che la funzione è un kernel CUDA che verrà eseguita in \verb|ceil(len / 64.0)| blocchi da \verb|64| thread ciascuno, nella griglia della GPU. I vettori vengono creati nella memoria host, copiati nella memoria device, elaborati e il risultato della computazione si salvato nel vettore \verb|res_vec| in memoria device, che dovrà essere ricopiato in memoria host per potervi accedere dai pezzi di codice host successivi. Le funzioni \verb|cudaMalloc|, \verb|cudaFree| e \verb|cudaMemcpy| sono le equivalenti, in C++, di \verb|malloc|, \verb|free| e \verb|memcpy|, e vengono usate per gestire l'allocazione di memoria device e la copia di memoria tra host e device e viceversa.
 
 \begin{figure}[ht]
     \centering
     \includegraphics[width=.9\linewidth]{images/chapter2/grid.png}
-    \caption{Processo di compilazione di un programma CUDA}
+    \caption{Esecuzione di programma CUDA}
     \label{fig:grid}
 \end{figure}
 
 
-!! todo spiegare il kernel
+Il codice kernel viene eseguito parallelamente da ogni thread della GPU seguendo il paradigma Single Program Multiple Data (SPMD), che differisce dal SIMD per l'assenza del vincolo che ogni istruzione deve essere eseguita in contemporanea su ogni thread. Il singolo thread esegue tre operazioni: lettura dei dati dai vettori di input, somma dai dati e scrittura del dato sul vettore di output. Ogni thread esegue queste stesse identiche istruzioni, la differenza sta nelle aree di memoria su cui quelle esse vengono eseguite: \verb|uint i = threadIdx.x + blockDim.x * blockIdx.x;| indica l'indice del vettore, e quindi l'aera di memoria sui cui lavorare, partendo dai parametri \verb|threadIdx|, \verb|blockDim| e \verb|blockIdx|. Come illustrato in fig \ref{fig:grid} la griglia sarà quindi composta n blocchi da 64 thread ciascuno, il numero dei blocchi è dipendente dalla linghezza \verb|len| dei vettori.
+
+\begin{lstlisting}[language=C++, caption=Kernel CUDA di somma di vettori, label=lis:sum_vec_kern]
+__global__ void kernelFn(int *vec_a, int *vec_b, int *res, uint n) {
+  uint i = threadIdx.x + blockDim.x * blockIdx.x;
+
+  if (i < n) {
+    res[i] = vec_a[i] + vec_b[i];
+  }
+}\end{lstlisting}
+
+Il codice in \ref{lis:sum_vec_kern} è schematizzato in fig. \ref{fig:sum_vec}. Supponiamo adesso che la dimensione dei vettori sia 132, non multiplo di 64 (\verb|blockDim|). Il blocco di condizionale \verb|if (i<n) {...}| è utile a indicare che i thread nel blocco con \verb|blockIdx=2|, che si occuperanno di sommare gli elementi con indici \verb|i=128,129,130,131|, devono eseguire le operazioni solo se, appunto, \verb|i| è minore della lunghezza massima del vettore \verb|n|. Sebbene in questo specifico esempio non sia necessario al fine della corretta esecuzione del programma, è buona prassi aggiungere sempre questo tipo di condizione sui dati per evitare letture/scritture su aree di memoria non allocate.
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/sum_vec.png}
+    \caption{Somma parallela di vettori}
+    \label{fig:sum_vec}
+\end{figure}
+
+
+Come si è illustrato, in poco più di 30 righe di codice si è in grado di accelerare, in CUDA, una semplice operazione di somma di vettori. Nella prossima sezione si illustrerà lo stesso programma, ma utilizzando le API Vulkan tramite il linguaggio di programmazione Rust.
 
 \subsection[Vulkan]{Vulkan}
+
+Vulkan è una rivoluzionaria API per grafica e calcolo 3D ad alte prestazioni progettata per le moderne architetture a pipeline delle GPU, mantenendo il supporto multi-piattaforma di OpenGL. Nonostante sia il successore dell'API OpenGL, è stato adottato un approccio completamente nuovo, per soddisfare le esigenze dei consumatori e lavorare in stretta collaborazione con l'hardware della GPU. Vulkan è un'API esplicita, in grado di controllare le impostazioni dell'hardware GPU per sfruttare al massimo la potenza del calcolo parallelo, sia in ambito grafico che computing. Il driver layer è molto sottile e pone maggiori responsabilità sul programmatore dell'applicazione, che deve gestire le risorse, la gestione della memoria, la sincronizzazione, oltre all'applicazione stessa. Questa natura esplicita di Vulkan lo rende particolarmente verboso, soprattutto in confronto a CUDA, che abbiamo appena visto.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/vulkan_scheme.png}
+    \caption{Schema di un'applicazione Vulkan}
+    \label{fig:vulkan_scheme}
+\end{figure}
+
+In fig. \ref{fig:vulkan_scheme} è mostrato lo schema logico di un'applicazione Vulkan. 
+Per scrivere un'applicazione Vulkan, per prima cosa va creata una \textit{instance}, che ha il compito di inizializzare la libreria Vulkan installata nel sistema e tenere traccia dello stato dell'applcazione. Una volta completata questa fase, si recuperano le informazioni sui \textit{physical device} disponibili nel sistema: si possono selezionare uno o più device. Per \textit{physical device} si intende l'hardware (CPU o GPU) su cui l'applicazione verrà eseguita. Se il nostro sistema dispone di molti \textit{physical device}, dato che ogni device ha determinate proprietà, si selezioneranno solo i device adatti alla nostra applicazione. Un \textit{physical device} ha molte \textit{queue} che sono categorizzate in gruppi chiamati \textit{queue family}, che identificano una famiglia di \textit{queue} in base alle loro proprietà. Ogni \textit{queue family} supporta una o più operazioni, ad esempio grafiche, di calcolo o di trasferimento di me memoria. Poiché lo scopo di questo elaborato è sviluppare un'applicazione per il computing, verrà utilizzato un device appartenente alle \textit{queue family} ``computing'', che quindi supporta operazioni di calcolo. Una volta selezionato il device è necessario creare un \textit{logical device}, astrazione logica che rappresenta le connessioni al \textit{physical device} ed è usato dall'applicazione per interagire con l'hardware del dispositivo. Si possono anche creare più \textit{logical device} per un lo stesso \textit{physical device}, ma per semplicità si lavorerà con un singolo \textit{logical device}. Come ultima cosa, si deve creare una \textit{queue}, della famiglia che ci interessa, a cui verrà sottoposto il carico di lavoro.
+
+Sebbene le API rilasciate da Khronos Group Vulkan  siano scritte in C++, esistono vari bindings per altri linguaggi. Come si è già accennato, in questo lavoro verrà usata la libreria Vulkano \cite[]{github:Vulkano} in Rust, che espone tutte le strutture dati necessarie per scrivere un'applicazione Vulkan, implementando il pattern RAII in modo automatico e gestendo i riferimenti in memoria in safe Rust; questo permetterà di concentrarsi maggiormente sulla logica del programma piuttosto che sulla gestione di riferimenti alla memoria, che è affidata al borrow checker \cite[]{Rust:borrow_checker} del compilatore di Rust. I benefici dell'usare Rust piuttosto che un altro linguaggio di programmazione verranno elencati successivamente nel prossimo capitolo.
+
+
+\lstinputlisting[language=Rust, caption=Inizializzazione di Vulkan in Rust, label=lis:vulkan_init]{code/vulkan_init.rs} 
+
+
+L'inizializzazione dell'applicazione Vulkan è illustrata in \ref{lis:vulkan_init}, nello spercifico le variabili \verb|device| e \verb|queue| rappresentano, rispettivamente, il \textit{logical device} e la \textit{queue} su cui sottomettere il lavoro. 
+
+In Vulkan il codice eseguito dalla GPU viene chiamato \textit{shader} e deve essere scritto nel linguaggio GLSL. GLSL nasce come linguaggio di shading di OpenGL ed ha una sintassi simile al C. Come illustrato in \ref{lis:vulkan_shader} i vettori di input, il vettore risultate e il paramentro \verb|n|, che indica la lunghezza dei vettori, sono passati in modo esplicito prima dell'esecuzione della funzione \verb|main|; importante notare che per ogni vettore vi è un parametro \verb|binding|, che, come vedremo in seguito, indica la precisa zona di memoria passata alla GPU.  Nella funzione \verb|main| possiamo notare similitudini con il kernel CUDA di \ref{lis:sum_vec_kern}, unica differenza degna di nota è il parametro che indica l'indice del vettore su cui eseguire le operazioni, in questo caso recuperato con \verb|uint i = gl_GlobalInvocationID.x| piuttosto che sommando e moltiplicando manualmente indice di blocco e thread, come avviene con CUDA.
+
+Il codice GLSL deve poi essere compilato in SPIR-V e infine caricato dall'applicazione Vulkan, con altre informazioni sui dettagli sull'esecuzione del codice. Questo meccanismo è illustrato in \ref{fig:shader}. Passare per una rappresentazione binaria intermedia quale SPIR-V permette a Vulkan di avere supporto multi-piattaforma, lasciando al driver di sistema del device i dettagli implementati su come eseguire il codice generato.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/shader.png}
+    \caption{Generazion di uno shader SPIR-V e binding nell'applicazione Vulkan}
+    \label{fig:shader}
+\end{figure}
+
+\begin{lstlisting}[language=GLSL, caption=Shader GLSL di somma di vettori, label=lis:vulkan_shader]
+#version 450
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer VecA {
+    int data[];
+} vec_a;
+
+layout(set = 0, binding = 1) readonly buffer VecB {
+    int data[];
+} vec_b;
+
+layout(set = 0, binding = 2) writeonly buffer VecRes {
+    int data[];
+} res;
+
+layout(push_constant) uniform PushConstants {
+    uint n;
+};
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+
+    if (i < n){
+        res.data[i] = vec_a.data[i] + vec_b.data[i];
+    }
+}    
+\end{lstlisting}
+
+A questo punto il codice GLSL deve essere caricato e linkato all'applicazione Vulkan. La liberia Vulkano fornisce delle macro \ref{lis:rust_macro}, che si occupano di compilare e linkare nell'eseguibile finale lo shader in fase di compilazione dell'eseguibile Vulkan.
+
+
+\begin{lstlisting}[language=Rust, caption=Compilazione e binding dello shader GLSL, label=lis:rust_macro]
+pub mod vec_sum {
+    vulkano_shaders::shader! {
+        ty: "compute",
+        path: "vec_sum.glsl"
+    }
+}    
+\end{lstlisting}
+
+
+\lstinputlisting[language=Rust, caption=??, label=lis:vulkan_execution]{code/vulkan_execution.rs} 
+
+
+
+    
+
