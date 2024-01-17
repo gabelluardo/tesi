@@ -139,22 +139,11 @@ Per scrivere un'applicazione Vulkan, per prima cosa va creata una \textit{instan
 
 Sebbene le API rilasciate da Khronos Group Vulkan  siano scritte in C++, esistono vari bindings per altri linguaggi. Come si è già accennato, in questo lavoro verrà usata la libreria Vulkano \cite[]{github:Vulkano} in Rust, che espone tutte le strutture dati necessarie per scrivere un'applicazione Vulkan, implementando il pattern RAII in modo automatico e gestendo i riferimenti in memoria in safe Rust; questo permetterà di concentrarsi maggiormente sulla logica del programma piuttosto che sulla gestione di riferimenti alla memoria, che è affidata al borrow checker \cite[]{Rust:borrow_checker} del compilatore di Rust. I benefici dell'usare Rust piuttosto che un altro linguaggio di programmazione verranno elencati successivamente nel prossimo capitolo.
 
-
 \lstinputlisting[language=Rust, caption=Inizializzazione di Vulkan in Rust, label=lis:vulkan_init]{code/vulkan_init.rs} 
-
 
 L'inizializzazione dell'applicazione Vulkan è illustrata in \ref{lis:vulkan_init}, nello spercifico le variabili \verb|device| e \verb|queue| rappresentano, rispettivamente, il \textit{logical device} e la \textit{queue} su cui sottomettere il lavoro. 
 
-In Vulkan il codice eseguito dalla GPU viene chiamato \textit{shader} e deve essere scritto nel linguaggio GLSL. GLSL nasce come linguaggio di shading di OpenGL ed ha una sintassi simile al C. Come illustrato in \ref{lis:vulkan_shader} i vettori di input, il vettore risultate e il paramentro \verb|n|, che indica la lunghezza dei vettori, sono passati in modo esplicito prima dell'esecuzione della funzione \verb|main|; importante notare che per ogni vettore vi è un parametro \verb|binding|, che, come vedremo in seguito, indica la precisa zona di memoria passata alla GPU.  Nella funzione \verb|main| possiamo notare similitudini con il kernel CUDA di \ref{lis:sum_vec_kern}, unica differenza degna di nota è il parametro che indica l'indice del vettore su cui eseguire le operazioni, in questo caso recuperato con \verb|uint i = gl_GlobalInvocationID.x| piuttosto che sommando e moltiplicando manualmente indice di blocco e thread, come avviene con CUDA.
-
-Il codice GLSL deve poi essere compilato in SPIR-V e infine caricato dall'applicazione Vulkan, con altre informazioni sui dettagli sull'esecuzione del codice. Questo meccanismo è illustrato in \ref{fig:shader}. Passare per una rappresentazione binaria intermedia quale SPIR-V permette a Vulkan di avere supporto multi-piattaforma, lasciando al driver di sistema del device i dettagli implementati su come eseguire il codice generato.
-
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=.9\linewidth]{images/chapter2/shader.png}
-    \caption{Generazion di uno shader SPIR-V e binding nell'applicazione Vulkan}
-    \label{fig:shader}
-\end{figure}
+In Vulkan il codice eseguito dalla GPU viene chiamato \textit{shader}, ed è scritto in GLSL. Il linguaggio GLSL nasce come linguaggio di shading di OpenGL ed ha una sintassi simile al C e CUDA. Come illustrato in \ref{lis:vulkan_shader} i vettori di input, il vettore risultate e il paramentro \verb|n|, che indica la lunghezza dei vettori, sono passati in modo esplicito prima dell'esecuzione della funzione \verb|main|; importante notare che per ogni vettore vi è un parametro \verb|binding|, che, come vedremo in seguito, indica la precisa zona di memoria passata alla GPU.  Nella funzione \verb|main| possiamo notare similitudini con il kernel CUDA di \ref{lis:sum_vec_kern}, unica differenza degna di nota è il parametro che indica l'indice del vettore su cui eseguire le operazioni, in questo caso recuperato con \verb|uint i = gl_GlobalInvocationID.x| piuttosto che sommando e moltiplicando manualmente indice di blocco e thread, come avviene con CUDA.
 
 \begin{lstlisting}[language=GLSL, caption=Shader GLSL di somma di vettori, label=lis:vulkan_shader]
 #version 450
@@ -185,9 +174,18 @@ void main() {
     }
 }    
 \end{lstlisting}
+    
+Il codice GLSL deve poi essere compilato in SPIR-V e infine caricato dall'applicazione Vulkan, con altre informazioni sui dettagli sull'esecuzione del codice. Questo meccanismo è illustrato in \ref{fig:shader}. Passare per una rappresentazione binaria intermedia quale SPIR-V permette a Vulkan di avere supporto multi-piattaforma, lasciando al driver di sistema del device i dettagli implementati su come eseguire il codice generato.
 
-A questo punto il codice GLSL deve essere caricato e linkato all'applicazione Vulkan. La liberia Vulkano fornisce delle macro \ref{lis:rust_macro}, che si occupano di compilare e linkare nell'eseguibile finale lo shader in fase di compilazione dell'eseguibile Vulkan.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/shader.png}
+    \caption{Generazione di uno shader SPIR-V e binding nell'applicazione Vulkan}
+    \label{fig:shader}
+\end{figure}
 
+
+Per compilare e linkare lo shader, la liberia Vulkano fornisce delle macro, illustrate in \ref{lis:rust_macro}, che rendono tutto il processo automatico, agendo in fase di compilazione dell'eseguibile finale.
 
 \begin{lstlisting}[language=Rust, caption=Compilazione e binding dello shader GLSL, label=lis:rust_macro]
 pub mod vec_sum {
@@ -198,6 +196,15 @@ pub mod vec_sum {
 }    
 \end{lstlisting}
 
+Una volta che Vulkan è inizializzata e lo sheder è pronto per essere compilato, quello che serve è allocare le risorse per l'implementazione del programma. Prima di addentrasi nei dettagli implementetativi serve capire come Vulkan alloca e gestisce la memoria.
+
+In Vulkan, considereremo due tipi di memoria: \textit{host memory} e \textit{device memory}. La principale differenza tra i due è che la memoria host è accessibile e utilizzata dalla CPU, mentre la memoria device è accessibile solo dal dispositivo in cui viene eseguito lo shader. 
+
+!! 
+
+La memoria del dispositivo può avere alcune proprietà e tipi. Ad esempio, un tipo di memoria può essere \verb|HOST_VISIBLE|, il che specifica che la memoria può essere mappata per l'accesso da parte dell'host oppure Altri tipi sono \verb|DEVICE_LOCAL| che indica che la memoria è, appunto, accessibile sono al device. L'applicazione è responsabile dell'allocazione della memoria con il tipo appropriato in base alle sue esigenze. Vulkan offre questa flessibilità per migliorare le prestazioni e l'utilizzo della memoria.
+
+Per l'implementazione in \ref{lis:vulkan_shader} servono tre vettori, quindi tre allocazioni di memoria con il tipo di memoria \verb|HOST_VISIBLE|. 
 
 \lstinputlisting[language=Rust, caption=??, label=lis:vulkan_execution]{code/vulkan_execution.rs} 
 
