@@ -1,18 +1,15 @@
 % abstract
 
-L'elaborato di tesi propone il confronto tra soluzioni basate su Cuda e possibili soluzioni basate su Rust e Vulkan, in contesto GPGPU e in particolare per acclerare il calcolo della soluzione per problemi di ottimizzazione, sfruttando la programmazione parallela e la potenza computazionale delle GPU.
+L'elaborato di tesi si propone l'obiettivo di confrontare soluzioni basate su Cuda con omologhe basate su Vulkan e Rust, per la realizzazione di applicativi GPGPU in un contesto orientato ai microservizi, e, in particolare, per accelerare la risoluzione di problemi di ottimizzazione sfruttando l'elevato parallelismo delle GPU. Viene posto il focus sulla comparazione delle performance, della \textit{development experience}, e della presenza, o meno, di tool per lo sviluppo e il debug.
 
-Il progetto Rust for GPGPU (?), presentato nella tesi, propone un nuovo approccio per lo sviluppo di soluzioni che sfruttano la computazione su GPU, matenendo alto il livello di astrazione sull'hardware, il supporto multipiattaforma, e garantendo un prodotto finale (?) memory safe.
+L'approccio proposto basato su Vulkan e Rust si pone come un'alternativa moderna, performante e portabile per lo sviluppo di applicativi su GPU, mantenendo alto il livello di astrazione dall'hardware e garantendo un'esecuzione del programma \textit{memory safe}. Queste proprietà derivano dalle caratteristiche intrinseche degli strumenti sopra citati e dell'ecosistema su cui si basano: fornite quindi senza costo, non richiedendo allo sviluppatore particolari accortezze o revisioni aggiuntive.
 
-Nella prima parte della tesi vengono presentati i concetti fondamentali dell GPGPU, viene poi posto un approfondimento sulle attuali soluzioni e in particolare su CUDA e le GPU NVIDIA che sono il de facto standard. Viene ...
+Nella prima parte dell'elaborato vengono presentati i concetti fondamentali della GPGPU. Vengono introdotte le API CUDA e Vulkan e l'adozione da parte dell'industria software. Segue una brave introduzione al linguaggio Rust e ai vantaggi che porta in termini di usabilità e produttività per lo sviluppatore, oltre che per l'utente finale.
 
-Nella seconda parte ...
+Nella seconda parte viene illustrata la suite di benchmark creati per comparare le performance e i risultati ottenuti. Viene, infine, fornita un'analisi dell'esperienza di sviluppo, la trattazione dei punti di forza e debolezza delle due soluzioni e l'elenco dei contesti in cui è più indicato usare l'una o l'altra soluzione.
 
-Nella terza parte ...
-
-
-Questo lavoro si pone come principale obiettivo quello di riuscire a realizzare un microservizio che tramite delle REST API ... 
+Nella terza parte, infine, viene illustrato lo sviluppo di un risolutore di matrici QUBO, che integra i benefici di entrambi gli approcci. L'applicativo è nella forma di un microservizio, per facilitare la comunicazione \textit{machine-to-machine}, e sfrutta, per la parte di rete, il linguaggio Rust con il framework async `Axum', e le API CUDA, per la parte di GPU computing. La scelta di adottare questo tipo di soluzione, come si vedrà, ha portato vantaggi sia in termini di velocità sviluppo che di prestazioni. Inoltre, grazie all'ottimo supporto della FFI di Rust ai linguaggi C/C++, l'integrazione con CUDA è stata agevole, al netto di un preliminare passo di configurazione.
 
 \bigskip
 
-\textit{\textbf{keywords:}} GPGPU, CUDA, Rust, Vulkan, Microservice, REST API (?)
+\textit{\textbf{keywords:}} GPGPU, CUDA, Rust, Vulkan, Microservice, REST API, FFI
