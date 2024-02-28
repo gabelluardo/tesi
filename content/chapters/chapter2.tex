@@ -204,21 +204,28 @@ pub mod vec_sum {
 \end{lstlisting}
 \vspace{5mm}
 
-Una volta che Vulkan è inizializzata e lo sheder è pronto per essere compilato, quello che serve è allocare le risorse per l'implementazione del programma. Prima di addentrasi nei dettagli implementativi serve capire come Vulkan alloca e gestisce la memoria.
+Una volta che Vulkan è inizializzata e lo shader è pronto per essere compilato, rimane solo allocare le risorse per l'implementazione del programma. Prima di addentrasi nei dettagli implementativi serve capire come Vulkan alloca e gestisce la memoria.
 
-In Vulkan, considereremo due tipi di memoria: \textit{host memory} e \textit{device memory}. La principale differenza tra le due è che la memoria host è accessibile e utilizzata dalla CPU, mentre la memoria device è accessibile solo dal dispositivo in cui viene eseguito lo shader. 
+In Vulkan, considereremo due tipi di memoria: \textit{host memory} e \textit{device memory}. La principale differenza tra le due è che la memoria host è accessibile e utilizzata dalla CPU, mentre la memoria device è accessibile solo dal dispositivo in cui viene eseguito lo shader. La memoria del dispositivo può avere alcune proprietà e tipi. 
 
-!! 
+% todo: aggiungere grafico sulla suddivisione della memoria host e device
 
-La memoria del dispositivo può avere alcune proprietà e tipi. Ad esempio, un tipo di memoria può essere \verb|HOST_VISIBLE|, il che specifica che la memoria può essere mappata per l'accesso da parte dell'host oppure \verb|DEVICE_LOCAL| che indica che la memoria è, appunto, accessibile sono al device. L'applicazione è responsabile dell'allocazione della memoria con il tipo appropriato in base alle proprie esigenze. Vulkan offre questa flessibilità per migliorare le prestazioni e l'utilizzo della memoria.
+Ad esempio, un tipo di memoria può essere \verb|HOST_VISIBLE|, il che specifica che la memoria può essere mappata nello spazio di memoria dell'host e a cui si può accedere come se fosse memoria RAM; oppure può essere \verb|DEVICE_LOCAL| che indica che la memoria è, appunto, mappata nella memoria device. L'applicazione è responsabile dell'allocazione della memoria con il tipo appropriato in base alle esigenze. Vulkan offre questa flessibilità per migliorare le prestazioni e l'utilizzo della memoria \cite[]{KG:MemoryFlag}.
 
-Per l'implementazione in \ref{lis:vulkan_shader} servono tre vettori, quindi tre allocazioni di memoria con il tipo di memoria \verb|HOST_VISIBLE|. I primi due vettori sono gli input, il parametro \verb|readonly| nello shader permette varie ottimizzazioni di compilazione. Il terzo vettore è il risultato della computazione, marcato \verb|writeonly| perché viene soltanto scritto nello shader. 
+In Vulkano per indicare come verrà usata la memoria si utilizzano degli \verb|enum|: i primi due buffer infatti vengono marcati come \verb|MemoryUsage::Upload| poiché vengo inizializzati nell'host e trasferiti in memoria device, mentre il terzo buffer viene marcato come \verb|MemoryUsage::Download| perché appunto viene scritto dal device e letto dall'host. Il risultato è che tutti i buffer sono visibili sia dall'host che dal device, ma, mentre i primi due sono scrivibili solo dall'host, il terzo è scrivibili solo dal device. Queste politiche di accesso in memoria non solo permettono di isolare meglio i componenti ed evitare errori di programmazione, ma permettono anche ottimizzazioni da parte del compilatore SPIR-V per un'esecuzione più performante da parte del driver della GPU.
+
+Nello shader GLSL \ref{lis:vulkan_shader} i tre buffer vengono inizializzati con parametri diversi che rispecchiano la natura e l'uso della memoria: i primi due vengono indicati col parametro \verb|readonly|, mentre il terzo con  \verb|writeonly|. 
+
 
 \vspace{5mm}
-\lstinputlisting[language=Rust, caption=??, label=lis:vulkan_execution]{code/vulkan_execution.rs} 
+\lstinputlisting[language=Rust, caption=Somma di vettori in Vulkan, label=lis:vulkan_execution]{code/vulkan_execution.rs} 
 \vspace{5mm}
 
-Il marcare tutti i tre vettori come \verb|HOST_VISIBLE| è giustificato dal fatto che i primi due sono inizializzati dalla CPU in memoria host, mentre il terzo viene letto dalla CPU per conoscere il risultato dell'operazione. In caso di computazioni intermedie, in cui ad esempio non serve alla CPU conoscere il risultato di un'operazione ma soltanto passarlo a un altro shader per la computazione successiva, allora avrebbe senso marcare tale area di memoria come \verb|DEVICE_LOCAL| permettendo la gestione unicamente alla GPU ed evitando eventuali copie in memoria host.
+
+Il marcare tutti i tre vettori come \verb|HOST_VISIBLE| è giustificato dal fatto che i gli input sono inizializzati dalla CPU in memoria host, mentre l'ultimo viene letto dalla CPU per conoscere il risultato dell'operazione. In caso di computazioni intermedie, in cui, ad esempio, non serve alla CPU conoscere il risultato di un'operazione ma soltanto passare il buffer a un altro shader per la computazione successiva, allora avrebbe senso marcare tale area di memoria puramente come \verb|DEVICE_LOCAL| utilizzando \verb|MemoryUsage::DeviceOnly| evitando così overhead da accessi in memoria di sistema.
+
+% todo: aggiungere considerazioni sul programma rispetto all'equivalente CUDA
+
 
 \section[Rust]{Rust}
 ...
