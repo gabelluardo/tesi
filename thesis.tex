@@ -66,7 +66,11 @@
 %\cleardoublepage
 %\thispagestyle{empty} % to have empty page, without numbers
 % 2) or
-\paginavuota % to manually create a blank page
+% \paginavuota % to manually create a blank page
+
+\phantom{0}
+\cleardoublepage
+\thispagestyle{empty}
 
 \sommario
 \input{content/abstract}
@@ -75,10 +79,7 @@
 \cleardoublepage
 \thispagestyle{empty}
 
-\ringraziamenti % acknowledgements
-\input{content/acknowledgements}
 
-\paginavuota
 \tableofcontents
 
 \listoffigures % ToC for figures
@@ -97,6 +98,10 @@
 % a blank page appears before the first chapter in some configurations, on the last version it doesn't
 
 \input{content/chapters.tex}
+
+\paginavuota
+\ringraziamenti % acknowledgements
+\input{content/acknowledgements}
 
 % actually abbreviation is the name used for acronym in glossaries-extra
 % title sets the name
