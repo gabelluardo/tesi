@@ -138,7 +138,7 @@ Vulkan è una rivoluzionaria API per grafica e calcolo 3D ad alte prestazioni pr
 In fig. \ref{fig:vulkan_scheme} è mostrato lo schema logico di un'applicazione Vulkan. 
 Per scrivere un'applicazione Vulkan, per prima cosa va creata una \textit{instance}, che ha il compito di inizializzare la libreria Vulkan installata nel sistema e tenere traccia dello stato dell'applicazione. Una volta completata questa fase, si recuperano le informazioni sui \textit{physical device} disponibili nel sistema: si possono selezionare uno o più device. Per \textit{physical device} si intende l'hardware (CPU o GPU) su cui l'applicazione verrà eseguita. Se il nostro sistema dispone di molti \textit{physical device}, dato che ogni device ha determinate proprietà, si selezioneranno solo i device adatti alla nostra applicazione. Un \textit{physical device} ha molte \textit{queue} che sono categorizzate in gruppi chiamati \textit{queue family}, in base alle loro proprietà. Ogni \textit{queue family} supporta una o più operazioni, ad esempio grafiche, di calcolo o di trasferimento di memoria. Poiché lo scopo di questo elaborato è sviluppare un'applicazione per il computing, verrà utilizzato un device appartenente alle \textit{queue family} ``computing'', che quindi supporta operazioni di calcolo. Una volta selezionato il device è necessario creare un \textit{logical device}, astrazione logica che rappresenta le connessioni al \textit{physical device} ed è usato dall'applicazione per interagire con l'hardware del dispositivo. Si possono anche creare più \textit{logical device} per lo stesso \textit{physical device}. Come ultima cosa, si deve creare una \textit{queue}, della famiglia che ci interessa, a cui verrà sottoposto il carico di lavoro.
 
-Sebbene le API rilasciate da Khronos Group Vulkan  siano scritte in C++, esistono vari bindings per altri linguaggi. Come si è già accennato, in questo lavoro verrà usata la libreria Vulkano \cite[]{github:Vulkano} in Rust, che espone tutte le strutture dati necessarie per scrivere un'applicazione Vulkan, implementando il pattern RAII in modo automatico e gestendo i riferimenti in memoria in safe Rust; questo permetterà di concentrarsi maggiormente sulla logica del programma piuttosto che sulla gestione di riferimenti in memoria, che è affidata al borrow checker \cite[]{Rust:borrow_checker} del compilatore di Rust. I benefici dell'usare Rust piuttosto che un altro linguaggio di programmazione verranno elencati successivamente nella prossima sezione.
+Sebbene le API rilasciate da Khronos Group Vulkan  siano scritte in C++, esistono vari bindings per altri linguaggi. Come si è già accennato, in questo lavoro verrà usata la libreria Vulkano \cite[]{github:Vulkano} in Rust, che espone tutte le strutture dati necessarie per scrivere un'applicazione Vulkan, implementando il pattern \gls{RAII} in modo automatico e gestendo i riferimenti in memoria in safe Rust; questo permetterà di concentrarsi maggiormente sulla logica del programma piuttosto che sulla gestione di riferimenti in memoria, che è affidata al borrow checker \cite[]{Rust:borrow_checker} del compilatore di Rust. I benefici dell'usare Rust piuttosto che un altro linguaggio di programmazione verranno elencati successivamente nella prossima sezione.
 
 \vspace{5mm}
 \lstinputlisting[language=Rust, caption=Inizializzazione di Vulkan in Rust, label=lis:vulkan_init]{code/vulkan_init.rs} 
@@ -180,7 +180,7 @@ void main() {
 \end{lstlisting}
 \vspace{5mm}
 
-Il codice GLSL deve poi essere compilato in SPIR-V e infine caricato in memoria dall'applicazione Vulkan, con altre informazioni sui dettagli sull'esecuzione del codice. Questo meccanismo è illustrato in \ref{fig:shader}. Passare per una rappresentazione binaria intermedia quale SPIR-V permette a Vulkan di avere supporto multi-piattaforma, lasciando ai driver del sistema del device i dettagli implementati su come eseguire il codice generato.
+Il codice GLSL deve poi essere compilato in SPIR-V e infine caricato in memoria dall'applicazione Vulkan, con altre informazioni sui dettagli sull'esecuzione del codice. Questo meccanismo è illustrato in fig. \ref{fig:shader}. Passare per una rappresentazione binaria intermedia quale SPIR-V permette a Vulkan di avere supporto multi-piattaforma, lasciando ai driver del sistema del device i dettagli implementati su come eseguire il codice generato.
 
 \begin{figure}[ht]
     \centering
@@ -206,25 +206,143 @@ pub mod vec_sum {
 
 Una volta che Vulkan è inizializzata e lo shader è pronto per essere compilato, rimane solo allocare le risorse per l'implementazione del programma. Prima di addentrasi nei dettagli implementativi serve capire come Vulkan alloca e gestisce la memoria.
 
-In Vulkan, considereremo due tipi di memoria: \textit{host memory} e \textit{device memory}. La principale differenza tra le due è che la memoria host è accessibile e utilizzata dalla CPU, mentre la memoria device è accessibile solo dal dispositivo in cui viene eseguito lo shader. La memoria del dispositivo può avere alcune proprietà e tipi. 
 
-% todo: aggiungere grafico sulla suddivisione della memoria host e device
+In Vulkan, considereremo due tipi di memoria: \textit{host memory} e \textit{device memory} schematizzate in fig. \ref{fig:host_device_mem}. La principale differenza tra le due è che la memoria host è accessibile e utilizzata dalla CPU, mentre la memoria device è accessibile solo dal dispositivo in cui viene eseguito lo shader. La memoria del dispositivo può avere alcune proprietà e tipi \cite[]{KG:VulkanGuide}. Ad esempio, un tipo di memoria può essere \verb|HOST_VISIBLE|, il che specifica che la memoria può essere mappata nello spazio di memoria dell'host e a cui si può accedere come se fosse memoria RAM; oppure può essere \verb|DEVICE_LOCAL| che indica che la memoria è, appunto, mappata nella memoria device. L'applicazione è responsabile dell'allocazione della memoria con il tipo appropriato in base alle esigenze. Vulkan offre questa flessibilità per migliorare le prestazioni e l'utilizzo della memoria \cite[]{KG:MemoryFlag}.
 
-Ad esempio, un tipo di memoria può essere \verb|HOST_VISIBLE|, il che specifica che la memoria può essere mappata nello spazio di memoria dell'host e a cui si può accedere come se fosse memoria RAM; oppure può essere \verb|DEVICE_LOCAL| che indica che la memoria è, appunto, mappata nella memoria device. L'applicazione è responsabile dell'allocazione della memoria con il tipo appropriato in base alle esigenze. Vulkan offre questa flessibilità per migliorare le prestazioni e l'utilizzo della memoria \cite[]{KG:MemoryFlag}.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.9\linewidth]{images/chapter2/host_device_mem.png}
+    \caption{Memoria Host e Device}
+    \label{fig:host_device_mem}
+\end{figure}
 
-In Vulkano per indicare come verrà usata la memoria si utilizzano degli \verb|enum|: i primi due buffer infatti vengono marcati come \verb|MemoryUsage::Upload| poiché vengo inizializzati nell'host e trasferiti in memoria device, mentre il terzo buffer viene marcato come \verb|MemoryUsage::Download| perché appunto viene scritto dal device e letto dall'host. Il risultato è che tutti i buffer sono visibili sia dall'host che dal device, ma, mentre i primi due sono scrivibili solo dall'host, il terzo è scrivibili solo dal device. Queste politiche di accesso in memoria non solo permettono di isolare meglio i componenti ed evitare errori di programmazione, ma permettono anche ottimizzazioni da parte del compilatore SPIR-V per un'esecuzione più performante da parte del driver della GPU.
+Nella libreria Vulkano per indicare l'uso che si farà della memoria si utilizzano gli \verb|enum|: i primi due buffer infatti vengono marcati come \verb|MemoryUsage::Upload| poiché vengo inizializzati nell'host e trasferiti in memoria device, mentre il terzo buffer viene marcato come \verb|MemoryUsage::Download| perché appunto viene scritto dal device e letto dall'host. Il risultato è che tutti i buffer sono visibili sia dall'host che dal device, ma, mentre i primi due sono scrivibili solo dall'host, il terzo è scrivibili solo dal device. Queste politiche di accesso in memoria non solo permettono di isolare meglio i componenti ed evitare errori di programmazione, ma permettono anche ottimizzazioni da parte del compilatore SPIR-V per un'esecuzione più performante da parte del driver della GPU.
 
-Nello shader GLSL \ref{lis:vulkan_shader} i tre buffer vengono inizializzati con parametri diversi che rispecchiano la natura e l'uso della memoria: i primi due vengono indicati col parametro \verb|readonly|, mentre il terzo con  \verb|writeonly|. 
-
+Nello shader in \ref{lis:vulkan_shader} i tre buffer vengono inizializzati con parametri che rispecchiano la natura e l'uso della memoria dalla prospettiva del device: i primi due vengono indicati col parametro \verb|readonly|, mentre il terzo con \verb|writeonly|. 
 
 \vspace{5mm}
-\lstinputlisting[language=Rust, caption=Somma di vettori in Vulkan, label=lis:vulkan_execution]{code/vulkan_execution.rs} 
+\begin{lstlisting}[language=Rust, caption=Inizializzazione buffer Vulkan, label=lis:vulkan_buffer]
+let vec_a = Vec::new();
+let vec_b = Vec::new();
+
+let memory_allocator = StandardMemoryAllocator::new_default(device.clone());
+let command_buffer_allocator =
+    StandardCommandBufferAllocator::new(device.clone(), Default::default());
+
+let buf_a = Buffer::from_iter(
+    &memory_allocator,
+    BufferCreateInfo {
+        usage: BufferUsage::STORAGE_BUFFER,
+        ..Default::default()
+    },
+    AllocationCreateInfo {
+        usage: MemoryUsage::Upload,
+        ..Default::default()
+    },
+    vec_a.iter(),
+);
+let buf_b = Buffer::from_iter(
+    &memory_allocator,
+    BufferCreateInfo {
+        usage: BufferUsage::STORAGE_BUFFER,
+        ..Default::default()
+    },
+    AllocationCreateInfo {
+        usage: MemoryUsage::Upload,
+        ..Default::default()
+    },
+    vec_b.iter(),
+);
+let buf_res = Buffer::new_slice(
+    &memory_allocator,
+    BufferCreateInfo {
+        usage: BufferUsage::STORAGE_BUFFER,
+        ..Default::default()
+    },
+    AllocationCreateInfo {
+        usage: MemoryUsage::Download,
+        ..Default::default()
+    },
+    len as u64,
+)?;
+\end{lstlisting}
 \vspace{5mm}
 
+Marcare tutti i tre vettori come \verb|HOST_VISIBLE| è necessario poiché i primi due di input sono inizializzati dalla CPU in memoria host, mentre l'ultimo viene letto dalla CPU per conoscere il risultato dell'operazione. In caso di computazioni intermedie, in cui non è necessario conoscere il risultato dell'operazione preliminare, ma soltanto passare il buffer a un altro shader per la computazione successiva, allora avrebbe senso marcare l'area di memoria come \verb|DEVICE_LOCAL| (utilizzando \verb|MemoryUsage::DeviceOnly|) evitando così overhead da eventuali accessi in memoria di sistema.
 
-Il marcare tutti i tre vettori come \verb|HOST_VISIBLE| è giustificato dal fatto che i gli input sono inizializzati dalla CPU in memoria host, mentre l'ultimo viene letto dalla CPU per conoscere il risultato dell'operazione. In caso di computazioni intermedie, in cui, ad esempio, non serve alla CPU conoscere il risultato di un'operazione ma soltanto passare il buffer a un altro shader per la computazione successiva, allora avrebbe senso marcare tale area di memoria puramente come \verb|DEVICE_LOCAL| utilizzando \verb|MemoryUsage::DeviceOnly| evitando così overhead da accessi in memoria di sistema.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.5\linewidth]{images/chapter2/pipeline.png}
+    \caption{Descriptor set e compute pipeline}
+    \label{fig:vulkan_pipeline}
+\end{figure}
 
-% todo: aggiungere considerazioni sul programma rispetto all'equivalente CUDA
+Dopo aver inizializzato i buffer bisogna creare dei \textit{descriptor set} che servono a specificare e gestire i dati di input e output per il kernel di calcolo. Questi vengono passati alla \textit{compute pipeline}, che definisce il flusso di operazioni parallele che vengono eseguite sui dati durante il processo di calcolo. In  fig. \ref{fig:vulkan_pipeline} è illustrata l'inizializzazione del \textit{descriptor set} e della \textit{compute pipeline}.
+
+\newpage 
+
+\vspace{5mm}
+\begin{lstlisting}[language=Rust, caption=Inizializzazione della compute pipeline, label=lis:vulkan_pipeline]
+let descriptor_set_allocator = StandardDescriptorSetAllocator::new(device.clone());
+
+let shader = loader::vec_sum::load(device)?;
+let pipeline = ComputePipeline::new(
+    device.clone(),
+    shader
+        .entry_point("main")
+        .ok_or(anyhow!("No entry point in shader"))?,
+    &(),
+    None,
+    |_| {},
+)?;
+let layout = pipeline.layout.set_layouts().get(0).unwrap();
+let set = PersistentDescriptorSet::new(
+    &descriptor_set_allocator,
+    layout.clone(),
+    [
+        WriteDescriptorSet::buffer(0, buf_a),
+        WriteDescriptorSet::buffer(1, buf_b),
+        WriteDescriptorSet::buffer(2, buf_res.clone()),
+    ],
+)?;
+\end{lstlisting}
+\vspace{5mm}
+
+In ultimo, bisogna allocare un \textit{command buffer} per definire e inviare le operazioni da eseguire sul device. Il \textit{command buffer} attiva la pipeline di calcolo, impostando i parametri e l'invio dei dati di input, includendo comandi per la sincronizzazione tra le diverse operazioni. Utilizzando il \textit{command buffer} in modo efficiente è possibile ottimizzare le prestazioni del calcolo parallelo, ad esempio raggruppando le operazioni correlate in un unico buffer e inviandole in blocco al device GPU.
+
+\vspace{5mm}
+\begin{lstlisting}[language=Rust, caption=Command buffer e dispatch, label=lis:vulkan_dispatch]
+let push_constants = PushConstants { n: len as u32 };
+
+let mut command_buffer_builder = AutoCommandBufferBuilder::primary(
+    &command_buffer_allocator,
+    queue.queue_family_index(),
+    CommandBufferUsage::OneTimeSubmit,
+)?;
+command_buffer_builder
+    .bind_pipeline_compute(pipeline.clone())
+    .bind_descriptor_sets(
+        PipelineBindPoint::Compute,
+        pipeline.layout().clone(),
+        0,
+        set,
+    )
+    .push_constants(pipeline.layout().clone(), 0, push_constants)
+    .dispatch([len as u32 / 64, 1, 1])?;
+let command_buffer = command_buffer_builder.build()?;
+
+let future = sync::now(device.clone())
+    .then_execute(queue.clone(), command_buffer)?
+    .then_signal_fence_and_flush()?;
+future.wait(None)?;
+
+let vec_res = buf_res.to_vec();
+
+...
+\end{lstlisting}
+\vspace{5mm}
+
+Come si può notare questa versione è molto più prolissa, rispetto a quella in CUDA. Il programmatore ha sì modo di avere più controllo sulle risorse del sistema, ma quando si devono eseguire shader semplici, questo potrebbe essere un ostacolo alla scrittura di codice leggibile e mantenibile. Come già accennato in precedenza, si è utilizzato la libreria Vulkano che permette di scrivere l'applicazione in Rust, se avessimo voluto scrivere un'applicazione equivalente in Vulkan con C++ avremmo avuto codice ancora più verboso e prono ad errori di memoria, dato che la gestione della memoria sarebbe stata affidata interamente al programmatore. In questo Rust è venuto in aiuto, gestendo tutte le risorse col paradigma RAII e permettendoci di concentrarci sulla logica applicativa. Nel prossimo capitolo verrà illustrata la gestione della memoria in Rust e come risulta più facile scrivere codice con elevato grado di correttezza e manutenibilità.
 
 
 \section[Rust]{Rust}

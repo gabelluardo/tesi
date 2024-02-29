@@ -26,6 +26,8 @@ int main(int argc, char **argv) {
 
   cudaMemcpy(h_res_vec, res_vec, size, cudaMemcpyDeviceToHost);
 
+  // ...
+
   cudaFree(res_vec);
   cudaFree(vec_b);
   cudaFree(vec_a);
