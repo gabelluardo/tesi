@@ -350,11 +350,70 @@ Come si evince dal codice, questa versione è molto più prolissa, della corrisp
 
 Rust è un linguaggio di programmazione di sistema progettato con un focus sulla sicurezza, sulla concorrenza e sulle prestazioni. In particolare l'obiettivo primario del linguaggio è permettere la gestione della memoria in modo automatico, ma senza ricorrere a garbage collector o contatori di riferimenti. 
 
-Gli errori di allocazione della memoria sono oggi una delle principali cause di vulnerabilità nel software \cite[]{Mic:memory_safety}, causando disagi agli utenti e soprattutto perdite economiche per aziende software. Rust mitiga questo problema incorporando funzionalità avanzate che forniscono sicurezza della memoria senza compromettere le prestazioni. Al centro della strategia di gestione della memoria di Rust ci sono le semantica di ownership e il borrow checker \cite[]{Rust:borrow_checker}, che lavorano insieme per produrre codice formalmente \textit{safe}. Il modello di ownership di Rust ruota attorno al concetto di ownership, dove ogni valore nel programma ha un unico owner in un dato momento. La deallocazione della memoria avviene quando le variabili escono fuori dallo scope, come avviene col paradigma RAII. Questo approccio deterministico elimina problemi come memory leaks e double free, comuni nei linguaggi intrinsecamente \textit{unsafe} come C e C++. Quando un valore viene assegnato a un'altra variabile o passato a una funzione, il possesso viene trasferito, garantendo che ci sia sempre un chiaro owner responsabile del rilascio della memoria. Inoltre, Rust utilizza le semantica di spostamento, impedendo l'uso accidentale di puntatori invalidati o riferimenti pendenti.
+Gli errori di memoria sono oggi una delle principali cause di vulnerabilità nel software \cite[]{Mic:memory_safety}, causando disagi agli utenti e soprattutto perdite economiche per aziende. Rust mitiga questo problema incorporando funzionalità avanzate che forniscono sicurezza della memoria senza compromettere le prestazioni. Al centro della strategia di gestione della memoria di Rust ci sono le semantica di ownership e il borrow checker \cite[]{Rust:borrow_checker}, che lavorano insieme per produrre codice formalmente \textit{safe}. Il modello di ownership di Rust ruota attorno al concetto di ownership, dove ogni valore nel programma ha un unico owner in un dato momento. La deallocazione della memoria avviene quando le variabili escono fuori dallo scope, come avviene col paradigma RAII. Questo approccio deterministico elimina problemi come memory leaks e double free, comuni nei linguaggi intrinsecamente \textit{unsafe} come C e C++. Quando un valore viene assegnato a un'altra variabile o passato a una funzione, il possesso viene trasferito, garantendo che ci sia sempre un chiaro owner responsabile del rilascio della memoria. Inoltre, Rust utilizza le semantica di spostamento, impedendo l'uso accidentale di puntatori invalidati o riferimenti pendenti.
 
 Il borrow checker è uno strumento di analisi statica integrato nel compilatore Rust che impone le regole che governano ownership e borrowing. Il borrowing consente a più riferimenti di accedere a un valore senza trasferire il possesso. Tuttavia, il borrow checker garantisce che questi riferimenti non sopravvivano al valore che prendono in prestito o provocano race condition dei dati. Rust supporta due tipi di borrowing: borrowing immutabile e mutabile. Il borrowing immutabile consente a più lettori di accedere a un valore contemporaneamente, mentre il borrowing mutabile garantisce l'accesso esclusivo, impedendo scritture concorrenti. Per facilitare il borrowing, Rust introduce il concetto di lifetimes, che tracciano la durata per cui i riferimenti sono validi. I lifetimes consentono al borrow checker di analizzare staticamente il codice e garantire che i riferimenti presi in prestito non sopravvivano ai valori a cui fanno riferimento.
 
+\vspace{5mm}
+\begin{lstlisting}[language=Rust, caption=Controllo dei puntatori in fase di compilazione, label=lis:rust_borrow_checker]
+fn main(){
+    let x = Vec::new();
+
+    // y ora è l'owner del dato di y
+    let y = x;
+
+    drop(x); // errore di compilazione, y è l'owner
+
+    let mut x = vec![1, 2, 3];
+    let first = &x[0];
+
+    // x viene spostato in y, first non è più valido
+    let y = x;
+    
+    println!("{*first}"); // errore di compilazione
+}
+\end{lstlisting}
+\vspace{5mm}
+
 Il modello di ownership di Rust facilita la concorrenza sicura applicando regole rigorose sull'aliasing mutabile a tempo di compilazione. Rust garantisce che l'accesso concorrente ai dati condivisi sia privo di race condition, rendendo più facile scrivere codice concorrente corretto e scalabile.
 Nonostante le sue forti garanzie sulla sicurezza, Rust offre prestazioni comparabili, e in alcuni casi migliori, rispetto a C e C++ \cite[]{Rust:bench}. Sfruttando ownership e borrowing per eliminare il sovraccarico a tempo di esecuzione associato alla garbage collection e ai controlli a runtime, Rust produce codice efficiente e di basso livello adatto alla programmazione di sistema e alle applicazioni critiche in termini di prestazioni.
+
+\vspace{5mm}
+\begin{lstlisting}[language=Rust, caption=Fearless concurrency, label=lis:rust_fearless_concurrency]
+use std::rc::Rc; // reference counting
+use std::sync::Arc; // atomic reference counting
+use std::sync::Mutex; // mutable exclusion
+
+fn main(){
+    let rc = Rc::new("not thread safe");
+    std::thread::spawn(move || {
+        // errore di compilazione, Rc non implementa il trait Send
+        println!("{:?}", rc); 
+    });
+
+    let arc = Arc::new("thread safe");
+    std::thread::spawn(move || {
+        // Arc implementa Send, quindi è thread safe
+        println!("{:?}", arc);  // output: thread safe
+    });
+
+    let mut v = Vec::new();
+    std::thread::spawn(move || {
+        v.push(1); 
+    });
+    // errore di compilazione, accesso a v dopo il movimento
+    println!("{:?}", v); 
+
+    // Mutex permette l'accesso concorrente in mutua esclusione
+    let v = Arc::new(Mutex::new(Vec::new())); 
+    let arc_v = Arc::clone(&v);
+    std::thread::spawn(move || {
+        arc_v.lock().unwrap().push(1); 
+    }).join().unwrap(); 
+
+    println!("{:?}", *v.lock().unwrap()); // output: [1]
+}
+\end{lstlisting}
+\vspace{5mm}
 
 L'approccio innovativo di Rust alla gestione della memoria e alla sicurezza, offre significativi vantaggi rispetto ai linguaggi tradizionali di programmazione di sistema. Combinando sicurezza della memoria, concorrenza e prestazioni, Rust permette ai programmatori di scrivere software affidabile, efficiente e scalabile senza un enorme sforzo cognitivo. Inoltre Rust si posiziona da 8 anni come linguaggio più amato dagli sviluppatori \cite[]{Rust:love}, per il suo ecosistema ricco, i numerosi tool disponibili e la facilità con cui si riesce a produrre software efficiente e sicuro. L'esigenza di produrre codice sicuro, ma efficiente non è solo del settore privato, per massimizzare il ritorno di investimento nello sviluppo software; ma premura anche del settore pubblico, come dimostra il recente endorsement del governo USA per quanto riguarda la sicurezza del cyberspazio \cite[]{Gov:rust_use}. Rust ha tutte le premesse per ridefinire il panorama della programmazione di sistema per gli anni a venire e la scelta di usarlo, per questo tipo di applicazioni, si sposa bene con la natura verbosa di Vulkan. 
