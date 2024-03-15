@@ -1,4 +1,51 @@
 \chapter{Analisi dei Requisiti}
 \label{sec:requirements}
 
-...
+% x. quali approcci sono possibili e perché si è scelto di provare rust + vulkan
+
+Lo studio nasce dalla necessità dell'azienda Data Reply di aggiornare un microservizio CUDA per renderlo più moderno e mantenibile. Il microservizio espone delle REST API, tramite una libreria legacy C++ non più mantenuta, a chiamate kernel CUDA per la risoluzione di matrici QUBO. Per risolvere il problema, si sono considerati tre possibili approcci:
+
+% bullet points
+\begin{itemize}
+    \item Sostituire la sola libreria legacy C++ con un'altra nello stesso linguaggio
+    \item Sostituire la sola libreria legacy C++ usando linguaggi più orientati allo sviluppo web, come Python, Scala, Java, Go o Rust e integrarvi la parte CUDA per poter essere richiamata dinamicamente
+    \item Sostituire la parte di computing CUDA con Vulkan e scegliere per la parte web linguaggi che ne supportassero facilmente l'integrazione 
+\end{itemize}
+
+Dato che la priorità era quella di sostituire la libreria legacy C++, ed, eventualmente, in caso di incremento di performance del sistema, usare Vulkan, si è scelto di iniziare provando il terzo approccio, in quanto avrebbe permesso di ottenere un microservizio più moderno, performante e mantenibile. Inoltre, dato che la parte CUDA era già usata in altri microservizi, come una libreria dinamica, sarebbe stato eventualmente facile passare al secondo approccio. Un altro importante requisito era che l'intero microservizio fosse compilabile come unico binario, senza che per il deploy in produzione fosse presente un interprete runtime. Questo restringeva la scelta dei possibili linguaggi a soli quelli che avessero compilatori \gls{AOT} che fossero in grado, quindi, di produrre codice macchina. Tra i linguaggi che soddisfacevano tutti i requisiti e con cui avevo abbastanza esperienza, Rust era il più adatto: per il suo vasto ecosistema web (nonostante comunque meno florido di altri linguaggi come Java e Go), per le performance eccellenti a carichi di lavoro intensi, e per la sua capacità di interfacciarsi con librerie C/C++ tramite la FFI. Inoltre, anche il supporto a Vulkan è molto buono, dato che ultimamente lo si sta iniziando a usare anche per il game development, con documentazione e risorse disponibili in costante crescita.
+
+I requisiti imposti possono quindi essere riassunti come segue:
+
+\paragraph{Requisiti funzionali}
+\begin{itemize}
+    \item Il microservizio deve essere in grado di risolvere matrici QUBO
+    \item Il microservizio deve essere esposto tramite REST API
+    \item Il microservizio deve essere scritto in Rust
+    \item Il microservizio deve usare Vulkan o CUDA per la parte di GPU computing
+\end{itemize}
+
+\paragraph{Requisiti non funzionali}
+\begin{itemize}
+    \item Il microservizio deve essere performante
+    \item Il microservizio deve essere mantenibile
+    \item Il microservizio deve essere facilmente testabile
+    \item Il microservizio deve essere sicuro e memory safe
+    \item Il microservizio deve essere resiliente a picchi di carico
+    \item Il microservizio deve essere facilmente integrabile con altri microservizi
+\end{itemize}
+
+\paragraph{Requisiti di sistema}
+\begin{itemize}
+    \item Il microservizio deve essere eseguibile su un server Linux con GPU NVIDIA
+    \item Il microservizio deve essere un unico file eseguibile
+    \item Il microservizio deve essere facilmente installabile e configurabile
+\end{itemize}
+
+% 1. quale problema si voleva risolvere?
+%     a. cosa è una matrice qubo
+%     b. algoritmi che si possono usare
+%     c. quantum?
+
+
+% 3. spiegare micro-servizio
+
