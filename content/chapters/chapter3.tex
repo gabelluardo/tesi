@@ -1,20 +1,128 @@
 \chapter{Analisi dei Requisiti}
 \label{sec:requirements}
 
-% x. quali approcci sono possibili e perché si è scelto di provare rust + vulkan
 
-Lo studio nasce dalla necessità dell'azienda Data Reply di aggiornare un microservizio CUDA per renderlo più moderno e mantenibile. Il microservizio espone delle REST API, tramite una libreria legacy C++ non più mantenuta, a chiamate kernel CUDA per la risoluzione di matrici QUBO. Per risolvere il problema, si sono considerati tre possibili approcci:
+Lo studio nasce dalla necessità dell'azienda Data Reply di aggiornare un microservizio CUDA per renderlo più moderno e mantenibile. Il microservizio espone delle REST API, tramite una libreria legacy C++ non più mantenuta, a chiamate kernel CUDA per la risoluzione di matrici QUBO. 
 
-% bullet points
+% 1. spiegare matrice qubo
+
+\section{Il problema}
+
+Una matrice QUBO è un concetto fondamentale nel campo della computazione quantistica e dell'ottimizzazione combinatoria: è una matrice che rappresenta un problema di ottimizzazione combinatoria, dove le variabili di decisione sono binarie e l'obiettivo è di massimizzare o minimizzare una funzione obiettivo quadratico. La funzione obiettivo è espressa come una combinazione di termini quadrati di variabili binarie, e la matrice QUBO rappresenta esattamente questi termini. 
+
+Ad esempio, se avessimo un problema di ottimizzazione che coinvolge la distribuzione di risorse limitate tra diverse attività, potremmo rappresentare le variabili binarie come \verb|0| se l'attività non viene svolta e \verb|1| se viene svolta. La funzione obiettivo potrebbe essere minimizzare il costo totale delle risorse impiegate, considerando le interazioni tra le attività. Queste interazioni quadratiche tra le variabili binarie costituirebbero i termini della matrice QUBO. 
+
+Risolvere una matrice QUBO significa trovare la combinazione di valori binari per le variabili che minimizza o massimizza la funzione obiettivo. Questo processo può essere complesso poiché potrebbe implicare la valutazione di tutte le possibili combinazioni di variabili. Tuttavia, l'interesse principale nelle matrici QUBO è nell'utilizzo di algoritmi di ottimizzazione, sia classici che quantistici, che possono trovare soluzioni approssimate in tempi ragionevoli. Gli algoritmi quantistici, in particolare, mostrano un potenziale significativo nel risolvere problemi QUBO in modo efficiente grazie alle proprietà intrinseche della meccanica quantistica.
+
+Non ci addentreremo oltre per quanto riguarda la teoria dei problemi QUBO e degli algoritmi di ottimizzazione, in quanto non è strettamente necessario per comprendere il lavoro svolto. Tuttavia, è importante sottolineare che la risoluzione di matrici QUBO è un problema computazionalmente intensivo, e richiede l'uso di risorse hardware specializzate e sofisticate tecniche software per ottenere risultati in tempi ragionevoli. Le operazioni da effettuare per la risoluzione della matrice QUBO possono essere riassunte in: 
+
+\begin{itemize}
+    \item Generazione delle possibili soluzioni
+    \item Calcolo del costo della soluzione per ogni soluzione
+    \item Identificazione della soluzione ottima, cioè a costo minore (o massimo, a seconda del problema)
+\end{itemize}
+
+Per calcolare il costo della soluzione, è necessario moltiplicare la matrice QUBO per la soluzione e moltiplicare il risultato per la soluzione trasposta. Il costo della soluzione è anche chiamato `energia'.
+
+\vspace{5mm}
+\begin{lstlisting}[language=Python, caption=Pseudocodice risoluzione matrice QUBO, label=lis:qubo_sol]
+# matrice NxN triangolare superiore
+QUBO = ...
+
+# spazio delle soluzioni possibili, 
+# rappresentate come vettori di N elementi binari
+sol_space = generate_sol_space(N)
+
+solutions = list()
+for vec_sol in sol_space:
+  energy = mat.mul(mat.mul(vec_sol, QUBO), vec_sol.T)
+  solutions.add((energy, sol))
+
+# soluzione ottima a energia minima
+min_sol = min(sol.energy for sol in solutions)
+
+# soluzione ottima a energia massima
+max_sol = max(sol.energy for sol in solutions)
+\end{lstlisting}
+\vspace{5mm}
+ 
+Per una matrice QUBO di dimensione $N$, il numero di soluzioni possibili è $2^N$, quindi il numero di operazioni da effettuare per trovare la soluzione ottima globale è esponenziale rispetto a $N$. Per valori di $N$ anche relativamente piccoli, il numero di operazioni da effettuare diventa rapidamente proibitivo e l'approccio naive in \ref{lis:qubo_sol}, che itera su tutto lo spazio delle soluzioni, è chiaramente infattibile. 
+Si possono adottare diverse strategie per ridurre il numero di iterazioni necessarie, come ad esempio un approccio hill climbing per trovare ottimi locali, o algoritmi genetici per esplorare lo spazio delle soluzioni in modo più efficiente oppure metodi greedy con constraint temporali. Tuttavia, questi algoritmi richiedono comunque un numero significativo di operazioni, soprattutto per le moltiplicazioni matriciali: quindi è necessario sfruttare al massimo le risorse hardware disponibili per ottenere risultati in tempi ragionevoli. Con la computazione eterogenea si può parallelizzare la parte moltiplicativa, ottenendo un notevole incremento nelle prestazioni. Questo è il motivo per cui il microservizio in questione è stato originariamente scritto per sfruttare CUDA e le GPU NVIDIA, che sono particolarmente adatte per questo tipo di calcoli.
+
+Un esempio di risoluzione con CUDA è mostrato in \ref{lis:qubo_cuda}, pur adottando ancora un approccio naive per la parte CPU, l'algoritmo del kernel CUDA è ottimizzato per essere efficiente negli accessi in memoria.
+
+
+\vspace{5mm}
+\begin{lstlisting}[language=C++, caption=CUDA moltiplicazine matrice QUBO, label=lis:qubo_cuda]
+__global__ void matMulKernel(const uint *sol, 
+        const uint *mat, uint *res, const uint dim) {
+  const uint col = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (col < dim) {
+    uint pos = 0;
+    uint value = 0;
+
+    // itera solo sulla parte superiore della matrice
+    for (uint i = 0; i <= col; i++) {
+      value += sol[i] * mat[pos + col];
+      pos += dim - i - 1;
+    }
+    res[col] = value * sol[col];
+  }
+}
+
+void solver(const uint *h_mat, const uint dim) {
+  // inizializzazione variabili
+  ... 
+
+  dim3 dimGrid((dim + 32 - 1) / 32.0, 1);
+  dim3 dimBlock(32, 32);
+
+  for (uint i = 0; i < (2 << dim - 1); i++) {
+    gen_vec_sol(vec, i, dim);
+
+    // entrambe le moltiplicazioni in GPU
+    solverKernel<<<dimGrid, dimBlock>>>(vec, mat, res, dim);
+    cudaDeviceSynchronize();
+
+    // reduce del risultato in CPU
+    auto energy = 0;
+    for (auto i = 0; i < dim; i++) {
+      energy += res[i];
+    }
+
+    if (energy < min_energy) {
+      min_energy = energy;
+      std::copy(vec, vec + size_vec, sol);
+    }
+  }
+
+  // free variabili
+  ...
+}
+
+\end{lstlisting}
+\vspace{5mm}
+
+Per quanto riguarda la parte web del microservizio, è necessario scegliere librerie che siano in grado di esporre REST API per oggetti di grandi dimensioni, dato che le matrici QUBO possono anche avere migliaia di righe e colonne. Nonostante esistano molte librerie di questo tipo è importante che siano testate e mantenute, in modo da garantire standard di sicurezza per non compromettere asset aziendali.
+
+% 2. quali approcci sono possibili e perché si è scelto di provare rust + vulkan
+
+\section{Approcci possibili}
+
+Il problema può essere affrontato in diversi modi, in particolare, si sono considerati i seguenti approcci:
+
 \begin{itemize}
     \item Sostituire la sola libreria legacy C++ con un'altra nello stesso linguaggio
-    \item Sostituire la sola libreria legacy C++ usando linguaggi più orientati allo sviluppo web, come Python, Scala, Java, Go o Rust e integrarvi la parte CUDA per poter essere richiamata dinamicamente
+    \item Sostituire la libreria legacy C++ usando linguaggi che supportano meglio lo sviluppo web, come Python, Scala, Java, Go o Rust e integrarvi la parte CUDA per poter essere richiamata a runtime
     \item Sostituire la parte di computing CUDA con Vulkan e scegliere per la parte web linguaggi che ne supportassero facilmente l'integrazione 
 \end{itemize}
 
-Dato che la priorità era quella di sostituire la libreria legacy C++, ed, eventualmente, in caso di incremento di performance del sistema, usare Vulkan, si è scelto di iniziare provando il terzo approccio, in quanto avrebbe permesso di ottenere un microservizio più moderno, performante e mantenibile. Inoltre, dato che la parte CUDA era già usata in altri microservizi, come una libreria dinamica, sarebbe stato eventualmente facile passare al secondo approccio. Un altro importante requisito era che l'intero microservizio fosse compilabile come unico binario, senza che per il deploy in produzione fosse presente un interprete runtime. Questo restringeva la scelta dei possibili linguaggi a soli quelli che avessero compilatori \gls{AOT} che fossero in grado, quindi, di produrre codice macchina. Tra i linguaggi che soddisfacevano tutti i requisiti e con cui avevo abbastanza esperienza, Rust era il più adatto: per il suo vasto ecosistema web (nonostante comunque meno florido di altri linguaggi come Java e Go), per le performance eccellenti a carichi di lavoro intensi, e per la sua capacità di interfacciarsi con librerie C/C++ tramite la FFI. Inoltre, anche il supporto a Vulkan è molto buono, dato che ultimamente lo si sta iniziando a usare anche per il game development, con documentazione e risorse disponibili in costante crescita.
+Dato che la priorità era quella di sostituire la libreria legacy C++, ed eventualmente, usare Vulkan (se avesse portato benefici prestazionali), si è scelto di iniziare provando il terzo approccio, in quanto avrebbe permesso di ottenere un microservizio più moderno, performante e mantenibile. Inoltre, dato che la parte CUDA era già scritta in modo modulare, sarebbe stato eventualmente facile passare al secondo approccio. 
 
-I requisiti imposti possono quindi essere riassunti come segue:
+Un altro importante requisito era che l'intero microservizio fosse compilabile come unico binario, senza che per il deploy in produzione fosse presente un interprete runtime. Questo restringeva la scelta dei possibili linguaggi a soli quelli che avessero compilatori \gls{AOT} che fossero in grado, quindi, di produrre codice macchina. Tra i linguaggi che soddisfacevano tutti i requisiti e con cui avevo maggiore esperienza, si è scelto Rust. Ritengo che Rust sia il più adatto par vari motivi: il suo vasto ecosistema web (nonostante comunque meno florido di altri linguaggi come Java e Go), le performance eccellenti a carichi di lavoro intensi, e la sua capacità di interfacciarsi con librerie C/C++ tramite la FFI. Inoltre, anche il supporto a Vulkan è molto buono, soprattutto perché ultimamente viene scelto dagli studio per sviluppare videogiochi, con documentazione e risorse disponibili in costante crescita.
+
+I requisiti possono essere quindi riassunti come segue:
 
 \paragraph{Requisiti funzionali}
 \begin{itemize}
@@ -30,7 +138,7 @@ I requisiti imposti possono quindi essere riassunti come segue:
     \item Il microservizio deve essere mantenibile
     \item Il microservizio deve essere facilmente testabile
     \item Il microservizio deve essere sicuro e memory safe
-    \item Il microservizio deve essere resiliente a picchi di carico
+    \item Il microservizio deve essere resiliente a picchi di carico e facilmente scalabile
     \item Il microservizio deve essere facilmente integrabile con altri microservizi
 \end{itemize}
 
@@ -41,11 +149,7 @@ I requisiti imposti possono quindi essere riassunti come segue:
     \item Il microservizio deve essere facilmente installabile e configurabile
 \end{itemize}
 
-% 1. quale problema si voleva risolvere?
-%     a. cosa è una matrice qubo
-%     b. algoritmi che si possono usare
-%     c. quantum?
+Per quanto riguarda la compatibilità con le GPU NVIDIA, è un requisito derivato dal sistema in produzione dell'azienda. Per motivi storici e prestazionali sono presenti solo GPU NVIDIA, ed è quindi fondamentale garantire la compatibilità. Implementando una versione con Vulkan, non solo si mantiene la compatibilità con le GPU NVIDIA, ma si estenderebbe automaticamente il supporto anche ad altri vendor GPU, in quanto Vulkan supporta anche GPU AMD e Intel.
 
-
-% 3. spiegare micro-servizio
+Nel prossimo capitolo verrà presentata la metodologia usata per comparare le performance dei sistemi considerati e i risultati ottenuti.
 
