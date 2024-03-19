@@ -1,3 +1,10 @@
 {
-  "cSpell.words": ["CUDA", "microservizi", "microservizio", "QUBO", "Vulkan"]
+  "cSpell.words": [
+    "CUDA",
+    "microservizi",
+    "microservizio",
+    "QUBO",
+    "struct",
+    "Vulkan"
+  ]
 }

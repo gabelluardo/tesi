@@ -2,7 +2,7 @@
 \label{sec:requirements}
 
 
-Lo studio nasce dalla necessità dell'azienda Data Reply di aggiornare un microservizio CUDA per renderlo più moderno e mantenibile. Il microservizio espone delle REST API, tramite una libreria legacy C++ non più mantenuta, a chiamate kernel CUDA per la risoluzione di matrici QUBO. 
+Questo studio nasce dalla necessità dell'azienda Data Reply di aggiornare un microservizio CUDA per renderlo più moderno e mantenibile. Il microservizio espone delle REST API, tramite una libreria legacy C++ non più mantenuta, a chiamate kernel CUDA per la risoluzione di matrici QUBO. 
 
 % 1. spiegare matrice qubo
 
@@ -100,7 +100,6 @@ void solver(const uint *h_mat, const uint dim) {
   // free variabili
   ...
 }
-
 \end{lstlisting}
 \vspace{5mm}
 
@@ -108,7 +107,7 @@ Per quanto riguarda la parte web del microservizio, è necessario scegliere libr
 
 % 2. quali approcci sono possibili e perché si è scelto di provare rust + vulkan
 
-\section{Approcci possibili}
+\section{Possibili Approcci}
 
 Il problema può essere affrontato in diversi modi, in particolare, si sono considerati i seguenti approcci:
 
@@ -150,6 +149,4 @@ I requisiti possono essere quindi riassunti come segue:
 \end{itemize}
 
 Per quanto riguarda la compatibilità con le GPU NVIDIA, è un requisito derivato dal sistema in produzione dell'azienda. Per motivi storici e prestazionali sono presenti solo GPU NVIDIA, ed è quindi fondamentale garantire la compatibilità. Implementando una versione con Vulkan, non solo si mantiene la compatibilità con le GPU NVIDIA, ma si estenderebbe automaticamente il supporto anche ad altri vendor GPU, in quanto Vulkan supporta anche GPU AMD e Intel.
-
-Nel prossimo capitolo verrà presentata la metodologia usata per comparare le performance dei sistemi considerati e i risultati ottenuti.
 
