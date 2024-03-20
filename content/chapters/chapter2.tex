@@ -89,7 +89,47 @@ NVCC elabora il programma, utilizzando le keyword CUDA per separare il codice ho
 
 \newpage
 \vspace{5mm}
-\lstinputlisting[language=C++, caption=Somma di vettori in CUDA, label=lis:sum_vec]{code/cuda_example.cu} 
+\begin{lstlisting}[language=C++, caption=Somma di vettori in CUDA, label=lis:sum_vec]
+__global__ void kernelFn(int *vec_a, int *vec_b, int *res, uint n) {
+  uint i = threadIdx.x + blockDim.x * blockIdx.x;
+
+  if (i < n) {
+    res[i] = vec_a[i] + vec_b[i];
+  }
+}
+
+int main(int argc, char **argv) {
+  uint size = len * sizeof(int);
+  int *h_vec_a = reinterpret_cast<int *>(malloc(size));
+  int *h_vec_b = reinterpret_cast<int *>(malloc(size));
+  int *h_res_vec = reinterpret_cast<int *>(malloc(size));
+
+  int *vec_a, *vec_b, *res_vec;
+
+  cudaMalloc(&vec_a, size);
+  cudaMemcpy(vec_a, h_vec_a, size, cudaMemcpyHostToDevice);
+  cudaMalloc(&vec_b, size);
+  cudaMemcpy(vec_b, h_vec_b, size, cudaMemcpyHostToDevice);
+
+  cudaMalloc(&res_vec, size);
+
+  kernelFn<<<ceil(len / 64.0), 64>>>(vec_a, vec_b, res_vec, len);
+  cudaDeviceSynchronize();
+
+  cudaMemcpy(h_res_vec, res_vec, size, cudaMemcpyDeviceToHost);
+
+  ...
+
+  cudaFree(res_vec);
+  cudaFree(vec_b);
+  cudaFree(vec_a);
+  free(h_res_vec);
+  free(h_vec_b);
+  free(h_vec_a);
+
+  return 0;
+}
+\end{lstlisting}
 \vspace{5mm}
 
 Il codice in \ref{lis:sum_vec} mostra un programma CUDA che somma due vettori in parallelo su GPU. La keyword \verb|__global__| indica che la funzione è un kernel CUDA che verrà eseguita in \verb|ceil(len / 64.0)| blocchi da \verb|64| thread ciascuno, nella griglia della GPU. I vettori vengono creati nella memoria host, copiati nella memoria device, elaborati e il risultato della computazione si salvato nel vettore \verb|res_vec| in memoria device, che dovrà essere ricopiato in memoria host per potervi accedere successivamente dal codice host. Le funzioni \verb|cudaMalloc|, \verb|cudaFree| e \verb|cudaMemcpy| sono le equivalenti di \verb|malloc|, \verb|free| e \verb|memcpy| presenti in C, e vengono usate per gestire l'allocazione di memoria device e la copia di memoria tra host e device e viceversa.
@@ -111,7 +151,8 @@ __global__ void kernelFn(int *vec_a, int *vec_b, int *res, uint n) {
   if (i < n) {
     res[i] = vec_a[i] + vec_b[i];
   }
-}\end{lstlisting}
+}
+\end{lstlisting}
 \vspace{5mm}
 
 Il codice in \ref{lis:sum_vec_kern} è schematizzato in fig. \ref{fig:sum_vec}. Supponiamo adesso che la dimensione dei vettori sia 132, non multiplo di 64 (\verb|blockDim|). Il blocco condizionale \verb|if (i<n) {...}| indica che i thread nel blocco con \verb|blockIdx=2|, che si occuperanno di sommare gli elementi con indici \verb|i=128,129,130,131|, devono eseguire le operazioni solo se, appunto, \verb|i| è minore della lunghezza massima del vettore \verb|n|. Sebbene per questo specifico esempio non sia necessario al fine della corretta esecuzione del programma, è buona prassi aggiungere sempre questo tipo di condizione sui dati per evitare letture/scritture su aree di memoria non allocate.
@@ -139,10 +180,67 @@ Vulkan è una rivoluzionaria API per grafica e calcolo 3D ad alte prestazioni pr
 In fig. \ref{fig:vulkan_scheme} è mostrato lo schema logico di un'applicazione Vulkan. 
 Per scrivere un'applicazione Vulkan, per prima cosa va creata una \textit{instance}, che ha il compito di inizializzare la libreria Vulkan installata nel sistema e tenere traccia dello stato dell'applicazione. Una volta completata questa fase, si recuperano le informazioni sui \textit{physical device} disponibili nel sistema: si possono selezionare uno o più device. Per \textit{physical device} si intende l'hardware (CPU o GPU) su cui l'applicazione può essere eseguita. Se il nostro sistema dispone di molti \textit{physical device}, dato che ogni device ha determinate proprietà, si selezioneranno solo i device adatti all'applicazione. Un \textit{physical device} ha molte \textit{queue} che sono categorizzate in gruppi chiamati \textit{queue family}, in base alle loro proprietà. Ogni \textit{queue family} supporta una o più operazioni, ad esempio grafiche, di calcolo o di trasferimento di memoria. Poiché lo scopo di questo elaborato è sviluppare un'applicazione per il computing, verrà utilizzato un device appartenente alle \textit{queue family} ``computing'', che quindi supporta operazioni di calcolo. Una volta selezionato il device è necessario creare un \textit{logical device}, astrazione logica che rappresenta le connessioni al \textit{physical device} ed è usato dall'applicazione per interagire con l'hardware del dispositivo. Si possono anche creare più \textit{logical device} per lo stesso \textit{physical device}. Come ultima cosa, deve essere creata una \textit{queue}, della famiglia che ci interessa, a cui verrà sottoposto il carico di lavoro.
 
-Sebbene le API Vulkan rilasciate da Khronos Group siano scritte in C++, esistono vari bindings per altri linguaggi. Come si è già accennato, in questo lavoro verrà usata la libreria Vulkano \cite[]{github:Vulkano} in Rust, in particolare al versione v0.33. Vulkano espone tutte le strutture dati necessarie per scrivere un'applicazione Vulkan, implementando il pattern \gls{RAII} e gestendo i riferimenti in memoria in safe Rust; questo permetterà di concentrarsi maggiormente sulla logica del programma piuttosto che sulla gestione di riferimenti in memoria, che è affidata al borrow checker \cite[]{Rust:borrow_checker} del compilatore di Rust. I benefici dell'usare Rust piuttosto che un altro linguaggio di programmazione verranno elencati successivamente nella prossima sezione.
+Sebbene le API Vulkan rilasciate da Khronos Group siano scritte in C++, esistono vari bindings per altri linguaggi. Come si è già accennato, in questo lavoro verrà usata la libreria Vulkano in Rust, in particolare al versione v0.33. Vulkano espone tutte le strutture dati necessarie per scrivere un'applicazione Vulkan, implementando il pattern \gls{RAII} e gestendo i riferimenti in memoria in safe Rust; questo permetterà di concentrarsi maggiormente sulla logica del programma piuttosto che sulla gestione di riferimenti in memoria, che è affidata al borrow checker \cite[]{Rust:borrow_checker} del compilatore di Rust. I benefici dell'usare Rust piuttosto che un altro linguaggio di programmazione verranno elencati successivamente nella prossima sezione.
 
 \vspace{5mm}
-\lstinputlisting[language=Rust, caption=Inizializzazione di Vulkan in Rust, label=lis:vulkan_init]{code/vulkan_init.rs} 
+\begin{lstlisting}[language=Rust, caption=Inizializzazione di Vulkan in Rust, label=lis:vulkan_init]{code/vulkan_init.rs} 
+fn main() -> Result<()> {
+    let instance = Instance::new(
+        VulkanLibrary::new()?,
+        InstanceCreateInfo::application_from_cargo_toml(),
+    )?;
+
+    let device_extensions = DeviceExtensions {
+        khr_storage_buffer_storage_class: true,
+        khr_shader_float_controls: true,
+        nv_compute_shader_derivatives: true,
+        ..DeviceExtensions::empty()
+    };
+    let device_features = Features {
+        shader_float64: true,
+        ..Features::empty()
+    };
+
+    let (physical_device, queue_family_index) = instance
+        .enumerate_physical_devices()?
+        .filter(|p| {
+            p.supported_extensions().contains(&device_extensions)
+                && p.supported_features().contains(&device_features)
+        })
+        .filter_map(|p| {
+            p.queue_family_properties()
+                .iter()
+                .position(|q| q.queue_flags.contains(QueueFlags::COMPUTE))
+                .map(|i| (p, i as u32))
+        })
+        .min_by_key(|(p, _)| match p.properties().device_type {
+            PhysicalDeviceType::DiscreteGpu => 0,
+            PhysicalDeviceType::IntegratedGpu => 1,
+            PhysicalDeviceType::VirtualGpu => 2,
+            PhysicalDeviceType::Cpu => 3,
+            PhysicalDeviceType::Other => 4,
+            _ => 5,
+        })
+        .ok_or(anyhow!("No suitable physical device detected"));
+
+    let (device, mut queues) = Device::new(
+        physical_device,
+        DeviceCreateInfo {
+            enabled_features: device_features,
+            enabled_extensions: device_extensions,
+            queue_create_infos: vec![QueueCreateInfo {
+                queue_family_index,
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+    )?;
+
+    let queue = queues.next().unwrap();
+
+    ...
+}
+\end{lstlisting}
 \vspace{5mm}
 
 L'inizializzazione dell'applicazione Vulkan è illustrata in \ref{lis:vulkan_init}, nello specifico le variabili \verb|device| e \verb|queue| rappresentano, rispettivamente, il \textit{logical device} e la \textit{queue} su cui sottomettere il lavoro. 
