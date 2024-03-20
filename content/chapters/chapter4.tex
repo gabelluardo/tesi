@@ -98,7 +98,7 @@ I dati contenuti nei vettori e nelle matrici sono stati generati casualmente a o
 
 % spiegare FMA
 
-La FMA è un'operazione che consente di eseguire una moltiplicazione tra due operandi e di aggiungere un terzo operando al risultato, in un unico passaggio. Questo approccio offre diversi vantaggi, inclusi una maggiore efficienza computazionale, una riduzione della latenza e un aumento della precisione. Le GPU moderne incorporano unità hardware specializzate per eseguire operazioni FMA in modo efficiente, contribuendo così alla loro capacità di elaborazione ad alte prestazioni. %Todo: citare fonte 
+La FMA è un'operazione che consente di eseguire una moltiplicazione tra due operandi e di aggiungere un terzo operando al risultato, in un unico passaggio. Questo approccio offre diversi vantaggi, inclusi una maggiore efficienza computazionale, una riduzione della latenza e un aumento della precisione. Le GPU moderne incorporano unità hardware specializzate per eseguire operazioni FMA in modo efficiente, contribuendo così alla loro capacità di elaborazione ad alte prestazioni \cite[]{NVIDIA:fma}.
 
 I moderni processori x86 e ARM incorporano anche unità FMA, ma non sempre sono in grado di eseguire operazioni FMA in modo efficiente come le GPU. Sia CUDA che Rust espongono funzioni nella libreria standard per eseguire operazioni FMA, e quindi, usandole, è stato possibile confrontare in modo preciso i risultati ottenuti su CPU con quelli ottenuti su GPU.
 
@@ -162,7 +162,7 @@ Per quanto riguarda Vulkan, dato che GLSL non supporta la programmazione generic
 
 \newpage
 \vspace{5mm}
-\begin{lstlisting}[language=Rust, caption=Loading shader con generics, label=lis:generic_glsl]
+\begin{lstlisting}[language=Rust, caption=Loading shader con enum, label=lis:generic_glsl]
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy)]
 pub enum Type {
@@ -194,10 +194,11 @@ impl Operation {
 \end{lstlisting}
 \vspace{5mm}
 
-Per quanto riguarda le operazioni sui dati in \ref{lis:generic_rust} è mostrato come usando il \textit{composition pattern} in Rust è possibile implementare il tratto \verb|Add| usato per la somma dei vettori e implementare la FMA per la moltiplicazione delle matrici. Il resto della logica rimane invariata rispetto a CUDA, con una funzione \verb|benchmark<...>| che specializza sul tipo di dato ed esegue tutte le operazioni necessarie.
+Per quanto riguarda le operazioni sui dati in \ref{lis:generic_rust} è mostrato come usando il \textit{composition pattern} in Rust è possibile implementare il tratto \verb|Add| usato per la somma dei vettori e implementare la FMA per la moltiplicazione delle matrici. Il resto della logica rimane invariata rispetto a CUDA, con una funzione \verb|benchmark::<T>(..., Type::T)| che specializza il tipo di dato ed esegue tutte le operazioni necessarie.
 
+\newpage
 \vspace{5mm}
-\begin{lstlisting}[language=Rust, caption=Loading shader con generics, label=lis:generic_rust]
+\begin{lstlisting}[language=Rust, caption=Programmazione generica in Rust, label=lis:generic_rust]
 #[allow(non_camel_case_types)]
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum DataType {
@@ -205,7 +206,6 @@ pub enum DataType {
   float(f32),
   double(f64),
 }
-
 
 impl Add for DataType {
   type Output = Self;
@@ -242,17 +242,129 @@ impl DataType {
     }
   }
 }
-
 \end{lstlisting}
 \vspace{5mm}
 
-% todo: capire se c'è altro da dire
+% todo: row major e column major
 
-\section{Risultati}
+\newpage
+\section{Dati}
 
-I risultati ottenuti sono stati riassunti in tabelle e grafici, in modo da poter confrontare le performance delle due soluzioni. I tempi di esecuzione sono stati calcolati in millisecondi e sono stati arrotondati a 4 cifre decimali.
+In tabella \ref{table:cuda_bench} sono riassunti i risultati ottenuti con CUDA, mentre in tabella \ref{table:vulkan_bench} sono mostrati i risultati ottenuti con Vulkan. Le misure sono fornite in millisecondi e arrotondati a 3 decimali.
 
 % tabelle con le medie dei risultati
 
+\vspace{5mm}
+\begin{table}[ht]
+  \centering
+  \renewcommand{\arraystretch}{1.3}
+
+  \begin{tabular}[t]{ ||l *{3}{ || r }|| }
+    \hline \hline
+    \multicolumn{4}{||c||}{uint} \\
+    \hline
+    & min  & max  & mean  \\
+    \hline
+    SUM VEC and NO COPY & 25.213 & 25.115 & 25.139 \\
+    SUM VEC and COPY & 246.253 & 224.671 & 234.274 \\
+    MUL MAT and NO COPY & 12.641 & 12.568 & 12.622 \\
+    MUL MAT and COPY & 31.283 & 31.048 & 31.132 \\  
+    \hline
+
+    \hline \hline
+    \multicolumn{4}{||c||}{float} \\
+    \hline
+    & min  & max  & mean  \\
+    \hline
+    SUM VEC and NO COPY & 25.212 & 25.113 & 25.14 \\
+    SUM VEC and COPY & 245.956 & 224.735 & 232.036 \\
+    MUL MAT and NO COPY & 12.649 & 12.575 & 12.626 \\
+    MUL MAT and COPY & 31.264 & 31.062 & 31.135 \\
+    \hline
+
+    \hline \hline
+    \multicolumn{4}{||c||}{double} \\
+    \hline
+    & min  & max  & mean  \\
+    \hline
+    SUM VEC and NO COPY & 25.527 & 25.191 & 25.428 \\
+    SUM VEC and COPY & 212.213 & 188.258 & 194.658 \\
+    MUL MAT and NO COPY & 38.281 & 36.98 & 37.702 \\
+    MUL MAT and COPY & 99.823 & 97.256 & 99.376 \\
+    \hline \hline
+  \end{tabular}
+
+  \caption{CUDA benchmark [ms]}
+  \label{table:cuda_bench}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \renewcommand{\arraystretch}{1.3}
+
+  \begin{tabular}[t]{ ||l *{3}{ || r }|| }
+    \hline \hline
+    \multicolumn{4}{||c||}{uint} \\
+    \hline
+    & min  & max  & mean  \\
+    \hline
+    SUM VEC and NO COPY & 30.664 & 30.147 & 30.361 \\
+    SUM VEC and COPY & 330.553 & 329.959 & 330.16 \\
+    MUL MAT and NO COPY & 11.101 & 10.903 & 11.045 \\
+    MUL MAT and COPY & 24.453 & 15.058 & 19.124 \\  
+    \hline
+
+    \hline \hline
+    \multicolumn{4}{||c||}{float} \\
+    \hline
+    & min  & max  & mean  \\
+    \hline
+    SUM VEC and NO COPY & 30.701 & 30.157 & 30.398 \\
+    SUM VEC and COPY & 330.584 & 329.995 & 330.162 \\
+    MUL MAT and NO COPY & 11.089 & 10.969 & 11.034 \\
+    MUL MAT and COPY & 24.401 & 15.101 & 17.854 \\
+    \hline
+
+    \hline \hline
+    \multicolumn{4}{||c||}{double} \\
+    \hline
+    & min  & max  & mean  \\
+    \hline
+    SUM VEC and NO COPY & 30.899 & 30.27 & 30.58 \\
+    SUM VEC and COPY & 330.412 & 330.048 & 330.173 \\
+    MUL MAT and NO COPY & 40.067 & 38.744 & 39.564 \\
+    MUL MAT and COPY & 86.603 & 51.264 & 64.337 \\
+    \hline \hline
+  \end{tabular}
+
+  \caption{Vulkan benchmark [ms]}
+  \label{table:vulkan_bench}
+\end{table}
+\vspace{5mm}
+
 % grafici per ogni tipo di dato
 
+I grafici in fig \ref{fig:bench_u32}, \ref{fig:bench_f32} e \ref{fig:bench_f64} mostrano i tempi di esecuzione di tutte le iterazioni, evidenziando la media, la distribuzione dei dati e gli eventuali outlier.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1\linewidth]{images/chapter4/bench_u32.png}
+  \caption{Benchmark con uint}
+  \label{fig:bench_u32}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1\linewidth]{images/chapter4/bench_f32.png}
+  \caption{Benchmark con float}
+  \label{fig:bench_f32}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=1\linewidth]{images/chapter4/bench_f64.png}
+  \caption{Benchmark con double}
+  \label{fig:bench_f64}
+\end{figure}
+
+Le considerazioni sui risultati ottenuti sono riportate nel prossimo capitolo.
