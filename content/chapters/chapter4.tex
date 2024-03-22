@@ -79,7 +79,7 @@ Il parametro \verb|vec_exp| indica la grandezza dei vettori: viene eseguita la s
 \end{lstlisting}
 \vspace{5mm}
 
-Per le matrici, invece, i tre elementi \verb|$dim_m, $dim_n, $dim_k|, indicano la dimensione di righe e colonne, quindi matrici di dimensione $M \times N$ e $N \times K$, che producono è una matrice grande $M \times K$. Nonostante le matrici QUBO siano quadrate e triangolari superiori, si è scelto di generalizzare il più possibile il benchmark, e quindi testare il prodotto di due matrici sparse. Quello che ci si aspetta è che, per la risoluzione di matrici QUBO di dimensioni paragonabili, i tempi d'esecuzione siano leggermente ridotti poiché, come si è visto in \ref{lis:qubo_sol}, si accede solo alla diagonale superiore, eseguendo però due motiplicazioni sui dati. Le dimensioni sono state scelte in modo da mantenere un compromesso tra dimensioni e tempo di esecuzione, in modo da poter eseguire un numero di iterazioni sufficiente per ottenere una media accurata: durante i test ci si è accorti che anche aumentando di dimensioni la differenza del tempo di esecuzione tra CUDA e Vulkan rimaneva pressoché invariata, ma aumentava considerevolmente il tempo di trasferimento in memoria. 
+Per le matrici, invece, i tre elementi \verb|$dim_m, $dim_n, $dim_k|, indicano la dimensione di righe e colonne, quindi matrici di dimensione $M \times N$ e $N \times K$, che producono è una matrice grande $M \times K$. Nonostante le matrici QUBO siano quadrate e triangolari superiori, si è scelto di generalizzare il più possibile il benchmark, e quindi testare il prodotto di due matrici sparse. Quello che ci si aspetta è che, per la risoluzione di matrici QUBO di dimensioni paragonabili, i tempi d'esecuzione siano leggermente ridotti poiché, come si è visto in \ref{lis:qubo_sol}, si accede solo alla diagonale superiore, eseguendo però due motiplicazioni sui dati. I valori usati per i benchmark sono \verb|dim_m=dim_k=1024| e \verb|dim_n=4096|. Le dimensioni sono state scelte in modo da mantenere un compromesso tra dimensioni e tempo di esecuzione, in modo da poter eseguire un numero di iterazioni sufficiente per ottenere una media accurata: durante i test ci si è accorti che anche aumentando di dimensioni la differenza del tempo di esecuzione tra CUDA e Vulkan rimaneva pressoché invariata, ma aumentava considerevolmente il tempo di esecuzione. 
 
 Il parametro \verb|$num_run| indica il numero di iterazioni da eseguire per calcolare la media dei tempi di esecuzione. Infine, \verb|$dtype| indica il tipo di dato da usare per i calcoli, e può essere \verb|uint|, \verb|float| o \verb|double|.
 
@@ -98,9 +98,7 @@ I dati contenuti nei vettori e nelle matrici sono stati generati casualmente a o
 
 % spiegare FMA
 
-La FMA è un'operazione che consente di eseguire una moltiplicazione tra due operandi e di aggiungere un terzo operando al risultato, in un unico passaggio. Questo approccio offre diversi vantaggi, inclusi una maggiore efficienza computazionale, una riduzione della latenza e un aumento della precisione. Le GPU moderne incorporano unità hardware specializzate per eseguire operazioni FMA in modo efficiente, contribuendo così alla loro capacità di elaborazione ad alte prestazioni \cite[]{NVIDIA:fma}.
-
-I moderni processori x86 e ARM incorporano anche unità FMA, ma non sempre sono in grado di eseguire operazioni FMA in modo efficiente come le GPU. Sia CUDA che Rust espongono funzioni nella libreria standard per eseguire operazioni FMA, e quindi, usandole, è stato possibile confrontare in modo preciso i risultati ottenuti su CPU con quelli ottenuti su GPU.
+La FMA è un'operazione che consente di eseguire una moltiplicazione tra due operandi e di aggiungere un terzo operando al risultato, in un unico passaggio. Questo approccio offre diversi vantaggi, inclusi una maggiore efficienza computazionale, una riduzione della latenza e un aumento della precisione. Le GPU moderne incorporano unità hardware specializzate per eseguire operazioni FMA in modo efficiente, contribuendo così alla loro capacità di elaborazione ad alte prestazioni \cite[]{NVIDIA:fma}. I moderni processori x86 e ARM incorporano anche unità FMA, ma non sempre sono in grado di eseguire operazioni FMA in modo efficiente come le GPU. Sia CUDA che Rust espongono funzioni nella libreria standard per eseguire operazioni FMA, e quindi, usandole, è stato possibile confrontare in modo preciso i risultati ottenuti su CPU con quelli ottenuti su GPU.
 
 % spiegare programmazione generica
 
@@ -122,6 +120,7 @@ void vecAdd(const T *h_data_a, const T *h_data_b,
   vecAddKernel<<<...>>>(vec_a, vec_b, res_data, len);
   ...
 }
+
 template <typename T>
 void matMul(const T *h_mat_a, const T *h_mat_b, 
     const uint m, const uint n, const uint k) { 
