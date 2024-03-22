@@ -1,13 +1,18 @@
 \chapter{Progetto}
 \label{sec:arch}
 
-Alla luce delle considerazioni esposte sui dati e sullo sviluppo, tenendo in conto che riscrivere l'intero microservizio in Rust con Vulkan non è un'operazione banale (e comunque non ci sarebbero stati enormi benefici in termini di prestazioni), si è scelto di adottare un approccio ibrido e quindi di mantenere i kernel in CUDA e usare Rust per la parte web del microservizio. Questo permette di mantenere le prestazioni e il know-how di CUDA e di poter sfruttare l'ecosistema e la development experience di Rust. Inoltre, l'uso di Rust per la parte web permette di avere un sistema più sicuro e performante su CPU rispetto alla controparte C++, e soprattutto più portabile e facilmente mantenibile, grazie al suo sistema di gestione delle dipendenze e alla sua capacità di compilare codice per diverse architetture.
+Alla luce delle considerazioni esposte sui dati e sullo sviluppo, tenendo in conto che riscrivere l'intero microservizio in Rust con Vulkan non è un'operazione banale (e comunque non ci sarebbero stati enormi benefici in termini di prestazioni), si è scelto di adottare un approccio ibrido e quindi di mantenere i kernel in CUDA e usare Rust per la parte web del microservizio. Questo permette di mantenere le prestazioni e il know-how di CUDA e di poter sfruttare l'ecosistema e la development experience di Rust. Inoltre, l'uso di Rust per la parte web permette di avere un sistema più sicuro rispetto al  C++, e soprattutto più portabile e facilmente mantenibile, grazie al suo sistema di gestione delle dipendenze e alla sua capacità di compilare codice per diverse architetture.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=.94\linewidth]{images/chapter6/micro_arch.png}
+    \caption{Architettura del microservizio}
+    \label{fig:micro_arch}
+\end{figure}
 
 \section{Struttura del microservizio}
 
-
-Il progetto ha una struttura di questo tipo:
+Mentre in fig \ref{fig:micro_arch} è mostrato uno schema visivo del microservizio, che illustra tutti i componenti essenziali, in \ref{lis:tree} è presente la struttura delle cartelle del progetto. Il progetto è strutturato in modo da separare il codice Rust dalla shared library di CUDA, in modo da poter gestire facilmente le dipendenze e le configurazioni di compilazione. 
 
 \vspace{5mm}
 \begin{lstlisting}[language=bash, caption=Directory del progetto, label=lis:tree]
@@ -25,8 +30,9 @@ $ tree .
 \end{lstlisting}
 \vspace{5mm}
 
-Il file \textit{Cargo.toml} contiene le dipendenze del progetto e le configurazioni di compilazione. Il file \textit{build.rs} contiene il codice necessario per il linking della libreria dinamica \verb|libsolver.so| di CUDA e specifica l'header da cui recuperare i simboli per la compilazione con \textit{autocxx} \ref{lis:build_rs}. La cartella \textit{src} contiene il codice Rust del microservizio, in cui: il file \textit{main.rs} contiene il codice principale del microservizio, con le REST API, mentre \textit{solver.rs} contiene le funzioni Rust per interfacciarsi con la shared library di CUDA tramite FFI. Infine, \textit{models.rs} contiene le strutture dati necessarie per la computazione e per la comunicazione con i client.
+Il file \textit{Cargo.toml} contiene le dipendenze del progetto, mentre nel file \textit{build.rs} è presente il codice necessario per il linking della libreria dinamica \verb|libsolver.so| di CUDA specificando l'header da cui recuperare i simboli per la compilazione con \textit{autocxx}, come mostrato in \ref{lis:build_rs}. La cartella \textit{src} contiene il codice Rust del microservizio, in cui: nel file \textit{main.rs} è presente il codice principale con le REST API, \textit{solver.rs} contiene le funzioni Rust per interfacciarsi con la libreria dinamica di CUDA tramite FFI, e \textit{models.rs} le strutture dati necessarie per la computazione e il parsing dei dati \textit{JSON} inviati dal client.
 
+\newpage
 \vspace{5mm}
 \begin{lstlisting}[language=Rust, caption=build.rs, label=lis:build_rs]
 use std::env;
@@ -40,6 +46,7 @@ fn main() {
     // Define path to resolve #include relative position
     let include_path = manifest_dir.join("lib");
     let cuda_path = manifest_dir.join("/usr/local/cuda/include");
+    
     let mut b = autocxx_build::Builder
         ::new("src/solver.rs", [&include_path, &cuda_path])
         .auto_allowlist(true)
@@ -55,18 +62,10 @@ fn main() {
 \end{lstlisting}
 \vspace{5mm}
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=1\linewidth]{images/chapter6/micro_arch.png}
-    \caption{Architettura del microservizio}
-    \label{fig:micro_arch}
-\end{figure}
 
+Per integrare Rust con la shared library di CUDA si è scelto di utilizzare al libreria \textit{autocxx} che, partendo dai file di header CUDA, genera tramite macro il modulo \verb|ffi| Rust necessario per richiamare la libreria. Questo permette di avere codice Rust che è in grado di chiamare le funzioni della libreria CUDA e di gestire i puntatori e le strutture dati necessarie per la computazione. Inoltre, \textit{autocxx} permette di gestire automaticamente la conversione dei tipi di dato tra Rust e C++, permettendo di scrivere codice Rust più pulito e mantenibile.
 
-Per integrare Rust con la shared library di CUDA si è scelto di utilizzare al libreria \textit{autocxx} che, partendo dai file di header genera tramite marco il codice Rust necessario per interfacciarsi con la libreria. Questo permette di avere un codice Rust che è in grado di chiamare le funzioni della shared library di CUDA e di gestire i puntatori e le strutture dati necessarie per la computazione. Inoltre, \textit{autocxx} permette di gestire automaticamente la conversione dei tipi di dato tra Rust e C++, permettendo di scrivere codice Rust che è molto simile a quello C++.
-
-
-
+\newpage
 \vspace{5mm}
 \begin{lstlisting}[language=Rust, caption=Macro autocxx e uso della FFI, label=lis:generic_glsl]
 // src/solver.rs
@@ -101,7 +100,7 @@ pub fn solve_matrix(params: Matrix<f64>) -> Solutions<f64> {
     ...
     unsafe { let _ = ffi::solve_matrix(params.qubo_matrix, ...); }
     ...
- }
+}
 
 // lib/solver.h
 
@@ -111,14 +110,130 @@ int solve_matrix(...);
 \end{lstlisting}
 \vspace{5mm}
 
+% spigare tokio e axum
 
+Per quanto riguarda la parte web, si è scelto di utilizzare il framework \textit{Axum} per la gestione delle REST API, in quanto è un framework molto performante e leggero, che sfrutta le feature \textit{async/await} di Rust. Inoltre, \textit{Axum} permette di gestire facilmente le richieste HTTP e di serializzare e deserializzare i dati in formato \textit{JSON} tramite l'integrazione automatica con la libreria \textit{Serde}. Gestire le richieste HTTP in modo asincrono e parallelo, permette di avere un numero maggiore di richieste al server senza che vi siano rallentamenti nell'esecuzione. In caso di configurazioni con più GPU questo può facilitare la gestione delle risorse in modo parallelo, permettendo di sfruttare al meglio le risorse disponibili e diminuire i tempi di risposta per il client. Questo approccio è simili a quanto avverrebbe usando thread e processi, ma è trasparente allo sviluppatore che può scrivere codice parallelo come fosse sequenziale, delegando al runtime la gestione dei task in modo efficiente.
 
-% spigare tokio
-% spiegare axum
 % spiegare rest api con json
 
+Tramite l'uso di macro Rust e le funzioni di \textit{Axum} si può scrivere un microservizio web con pochissimo codice, come mostrato in \ref{lis:axum}. Le strutture dati definite in \textit{models.rs} vengono usate per serializzare e deserializzare i dati in formato \textit{JSON} in modo automatico, permettendo di gestire facilmente i dati in input e in output delle REST API. È importante notare che, data la mole di dati e parametri che vengono solitamente usati per la computazione di matrici QUBO (con payload nell'ordine della centinaia di MB), è fondamentale gestire il parsing in modo efficiente e altamente prestazionale. 
+Inoltre, \textit{Axum} permette di gestire facilmente i middleware, permettendo di aggiungere funzionalità come il logging, la gestione degli errori e la gestione delle autorizzazioni in modo semplice e modulare.
 
-\section{Piani futuri}
+\vspace{5mm}
+\begin{lstlisting}[language=Rust, caption=Inizializzazione Axum, label=lis:axum]
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    let address = "127.0.0.1:3000".parse().unwrap();
+    println!("=> Running on http://{address}");
+
+    axum::Server::bind(&address)
+        .serve(app().into_make_service())
+        .await
+        .unwrap();
+
+    Ok(())
+}
+
+fn app() -> Router {
+    Router::new()
+        .route("/health-check", get(health_check))
+        .route("/device-count", get(get_device_count))
+        .route("/solve-matrix", post(solve_matrix))
+        .layer(axum::middleware::from_fn(logging))
+        .layer(axum::middleware::from_fn(authentication))
+
+}
+\end{lstlisting}
+\vspace{5mm}
+
+Le REST API sono definite come funzioni \textit{async}, macchine a stati in cui l'esecuzione è delegata al runtime asincrono \textit{Tokio}. I task vengono ripartiti in più thread usando il modello del \textit{cooperative scheduling}, il risultato è ceh i task collaborano in modo da gestire le richieste in modo efficiente.
+
+\vspace{5mm}
+\begin{lstlisting}[language=Rust, caption=Web API, label=lis:api]
+async fn health_check() 
+        -> Result<Json<serde_json::Value>, AppError> {
+    let msg = solver::health_check();
+    let response = serde_json::json!(msg);
+
+    Ok(Json(response))
+}
+
+async fn get_device_count() 
+        -> Result<Json<serde_json::Value>, AppError> {
+    let count = solver::get_device_count();
+    let response = serde_json::json!({ "devices": count });
+
+    Ok(Json(response))
+}
+
+async fn solve_matrix(Json(payload): Json<Matrix<f64>>) 
+        -> Result<Json<Solutions<f64>>, AppError> {
+    let solutions = solver::solve_matrix(payload);
+
+    Ok(Json(solutions))
+}
+\end{lstlisting}
+\vspace{5mm}
+
+
+Un esempio di richiesta API è mostrato in \ref{lis:api_req}, in cui si invia una matrice QUBO in formato \textit{JSON} al microservizio, che la computa e restituisce le soluzioni in formato \textit{JSON}. Questo permette di avere un'interfaccia semplice e standardizzata per l'interazione con il microservizio, permettendo di integrarlo facilmente con altri servizi e applicazioni.
+
+\newpage
+\vspace{5mm}
+\begin{lstlisting}[language=bash, caption=Esempio richiesta API, label=lis:api_req]
+$ curl -X POST http://localhost:3000/solve-matrix \
+    -H "Content-Type: application/json" \
+    -d '{"qubo_matrix": [[1, 0, 0, 0, 1, 0, 0, 0, 1]], "N": 3, 
+         "solutionsNumber": 3 }'
+
+{
+    "quboSolutions": [
+        {
+            "quboEnergy": 0.0,
+            "quboSolution": [1, 0, 1],,
+            "solutionTime": 0.0
+        },
+        ...
+    ]
+}
+\end{lstlisting}
+\vspace{5mm}
+
+Per la verifica della correttezza delle API e dell'integrazione con CUDA sono stati scritti degli \textit{unit test} usando \textit{axum-test-helper} e \textit{cargo test} per l'esecuzione. Un esempio di test è mostrato in \ref{lis:health_check}, in cui si testa la funzione \textit{health\_check} per verificare che restituisca il messaggio corretto e che quindi l'integrazione con CUDA sia eseguita correttamente.
+
+\vspace{5mm}
+\begin{lstlisting}[language=rust, caption=Health check test, label=lis:health_check]
+#[cfg(test)]
+mod tests {
+    #[tokio::test]
+    async fn test_api_health_check() {
+        let client = TestClient::new(app());
+        let res = client.get("/health-check").send().await;
+
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(
+            res.json::<String>().await,
+            serde_json::json!("Hello from MegaQUBO!")
+        );
+    }
+    ...
+}
+\end{lstlisting}
+\vspace{5mm}
+
+
+
+La compilazione e il deployment sono gestiti tramite \textit{cargo} e \textit{docker}, permettendo di avere un sistema di build e deploy automatizzato e riproducibile. L'uso della libreria dinamica, in questo caso, è stato voluto per permettere di aggiornare la libreria CUDA senza dover ricompilare l'intero microservizio e aumentare il riutilizzo del codice. È comunque possibile anche usare una libreria statica, per avere un sistema più portabile e indipendente dalle librerie esterne, integrando la compilazione con \textit{cargo} e impostando conseguentemente il linking nell'eseguibile finale in \textit{build.rs}. Mi sento di consigliare questo approccio per avere un sistema più robusto e mantenibile, in quanto permette di avere un controllo maggiore sulle dipendenze e di evitare problemi di compatibilità e versioning delle librerie.
+
+\section{Sviluppi futuri}
+
 
 % sviluppo futuri con grpc di protobuf
-% aggiunta test e CI ???
+
+Possibili migliorie per rendere il microservizio ancora più efficiente potrebbe essere quello di usate \textit{gRPC} al posto di REST API, in quanto permette di avere una comunicazione più efficiente e performante, grazie al protocollo binario e alla gestione automatica della serializzazione e deserializzazione dei dati. Inoltre, \textit{gRPC} permette di definire i servizi e i messaggi tramite \textit{Protocol Buffers}, che permette di avere una definizione standardizzata e facilmente mantenibile dei dati e delle API. Questo permetterebbe di avere un sistema più scalabile e performante, in grado di gestire un numero maggiore di richieste e di risorse in modo efficiente. Questo approccio permette di richiamare le API da altre macchine in modo più facile, integrando il modo più solido il microservizio nell'architettura software aziendale.
+
+% multi gpu
+
+Data l'architettura modulare del microservizio, è possibile estendere facilmente le funzionalità aggiungendo nuove API e nuove funzionalità, come la gestione di più GPU, la gestione di più matrici QUBO in parallelo, o la possibilità di integrare le API Vulkan per sostituire le funzioni CUDA, oppure combinarle e usarle in modo intercambiabile in base alle esigenze. Sarebbe inoltre possibile avere un sistema con multi-GPU con hardware di vendor differenti ed usare Vulkan per GPU AMD e CUDA per GPU NVIDIA, parallelamente.
+
+

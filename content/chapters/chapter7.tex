@@ -1,7 +1,9 @@
 \chapter{Conclusioni}
 \label{sec:conclusion}
 
-...
-% compilazione rust direttamente in spirv
-% CUDA non può essere rimpiazzato facilmente
-% per uscire dal vendor lock-in di NVIDIA, è necessario usare Vulkan
+L'obiettivo di questo lavoro di tesi era la comparazione delle performance di due sistemi per il GPGPU computing, CUDA e Vulkan. Come dimostrato dai dati e dall'esperienza di sviluppo, per quanto CUDA è ancora la prima scelta per sistemi di computazione ibrida per GPGPU, Vulkan è un'alternativa valida, in molti casi preferibile e per sistemi che non supportano CUDA, l'unica scelta possibile. Dato che le performance di Vulkan sono molto vicine a quelle di CUDA, la scelta tra i due dipende da altri fattori, come la complessità del codice, la disponibilità di librerie e la facilità di sviluppo. Inoltre, Vulkan è una tecnologia più recente e in rapida evoluzione, quindi è possibile che in futuro diventi la scelta preferita per il GPGPU computing. 
+
+La scelta di usare Rust in combinazione con Vulkan si è rivelata molto positiva. Rust è un linguaggio di programmazione moderno e sicuro, che permette di scrivere codice efficiente e mantenibile, senza rinunciare alle performance. Il vasto ecosistema di librerie e documentazione che si è sviluppato attorno a Rust è un ulteriore vantaggio per gli sviluppatori, soprattutto per quanto riguarda il lo sviluppo web. Grazie alla FFI di Rust anche l'integrazione con CUDA è stata agevole e, al netto della prima fase di configurazione, per il building e linking delle librerie CUDA, non ci sono stati problemi. Grazie alla politica \textit{zero cost abstraction} di Rust, l'integrazione con CUDA è stata molto efficiente senza comportare overhead al programma.
+
+In un futuro lavoro, sarebbe interessante esplorare le performance di Vulkan su sistemi con più GPU, per vedere se Vulkan è in grado di sfruttare al meglio le potenzialità di sistemi con più schede grafiche. L'idea di poter anche usare Vulkan in combinazione con CUDA per sfruttare al meglio le potenzialità di entrambe le tecnologie potrebbe portare a risultati molto interessanti.
+L'ostacolo maggiore che ad oggi impedisce di sfruttare al meglio le potenzialità di Vulkan è difficoltà nell'inizializzare le risorse Vulkan e scrivere codice mantenibile. Sarebbe interessante sviluppare librerie e framework per semplificare lo sviluppo di applicazioni GPGPU con Vulkan, in modo da rendere questa tecnologia più accessibile agli sviluppatori. L'idea di poter compilare Rust direttamente in SPIR-V, senza passare per il GLSL, ed eseguire il codice direttamente su Vulkan, potrebbe essere la killer feature che renderebbe Vulkan una valida alternativa a CUDA per il GPGPU computing.
