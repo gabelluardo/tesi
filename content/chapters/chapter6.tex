@@ -146,6 +146,8 @@ fn app() -> Router {
 \end{lstlisting}
 \vspace{5mm}
 
+\newpage
+
 Le REST \gls{API} sono definite come funzioni \textit{async}, macchine a stati, detti \textit{task}, in cui l'esecuzione è delegata al runtime asincrono \textit{Tokio}. I task vengono ripartiti in più thread usando il modello del \textit{cooperative scheduling} \cite[]{Rust:Tokio_sched}, il risultato è che i task collaborano in modo da gestire le richieste in modo efficiente.
 
 \vspace{5mm}
@@ -174,7 +176,6 @@ async fn solve_matrix(Json(payload): Json<Matrix<f64>>)
 }
 \end{lstlisting}
 \vspace{5mm}
-
 
 Un esempio di richiesta \gls{API} è mostrato in \ref{lis:api_req}, in cui si invia una matrice \gls{QUBO} in formato \gls{JSON} al microservizio, che la computa e restituisce le soluzioni in formato \gls{JSON}. Questo permette di avere un'interfaccia semplice e standardizzata per l'interazione con il microservizio, permettendo di integrarlo facilmente con altri servizi e applicazioni.
 
@@ -213,7 +214,7 @@ mod tests {
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(
             res.json::<String>().await,
-            serde_json::json!("Hello from MegaQUBO!")
+            serde_json::json!("Hello from CUDA!")
         );
     }
     ...
