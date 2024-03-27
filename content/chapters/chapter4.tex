@@ -194,7 +194,7 @@ impl Operation {
 \end{lstlisting}
 \vspace{5mm}
 
-Per quanto riguarda le operazioni sui dati in \ref{lis:generic_rust} è mostrato comem usando il \textit{composition pattern} in Rust, è possibile implementare il tratto \verb|Add| per la somma dei vettori e implementare la \gls{FMA} per la moltiplicazione delle matrici. Il resto della logica rimane invariata rispetto a \gls{CUDA}, con una funzione \verb|benchmark::<T>(..., Type::T)| che specializza il tipo di dato ed esegue tutte le operazioni necessarie.
+Per quanto riguarda le operazioni sui dati in \ref{lis:generic_rust} è mostrato come usando il \textit{composition pattern} in Rust, è possibile implementare il tratto \verb|Add| per la somma dei vettori e implementare la \gls{FMA} per la moltiplicazione delle matrici. Il resto della logica rimane invariata rispetto a \gls{CUDA}, con una funzione \verb|benchmark::<T>(..., Operation::...(Type::T))| che specializza il tipo di dato ed esegue tutte le operazioni necessarie.
 
 \vspace{5mm}
 \begin{lstlisting}[language=Rust, caption=Programmazione generica in Rust, label=lis:generic_rust]
@@ -244,10 +244,30 @@ impl DataType {
 \end{lstlisting}
 \vspace{5mm}
 
+\newpage
+
 % row major e column major
 
-!! TODO !! spiegare row major e column major
+I benchmark sono stati condotti utilizzando matrici vettorizzate, le quali sono memorizzate in memoria in modo tale da richiedere un solo accesso per ogni elemento. Per ottimizzare l'accesso ai dati, le matrici sono state memorizzate in modo \textit{col-major} e \textit{row-major}, cioè rispettivamente con le colonne o righe memorizzate in sequenza. Questa scelta è fondamentale per sfruttare al meglio la \textit{cache} di \gls{CUDA} garantire accesso ai dati \textit{coalesced} \cite[]{CUDA:Massive}. Le prestazioni migliorano di poco rispetto a un approccio tradizionale \textit{row-major}, ma è comunque importante per garantire che i dati siano accessibili in modo efficiente.
 
+\vspace{5mm}
+\begin{lstlisting}[language=C++, caption=Accesso ai dati in col-major e row-major, label=lis:col-major]
+const uint row = blockIdx.y * blockDim.y + threadIdx.y;
+const uint col = blockIdx.x * blockDim.x + threadIdx.x;
+
+if (row < m && col < k) {
+  auto value = 0;
+
+  for (uint i = 0; i < n; i++) {
+    // invece di mat_a[row * n + i] in row-major
+    value += mat_a[i * m + row] * mat_b[i * k + col];
+  }
+  res[row * k + col] = value;
+}
+\end{lstlisting}
+\vspace{5mm}
+
+\newpage
 \section{Dati}
 
 In tabella \ref{table:cuda_bench} sono riassunti i risultati ottenuti con \gls{CUDA}, mentre in tabella \ref{table:vulkan_bench} sono mostrati i risultati ottenuti con Vulkan. Le misure sono fornite in millisecondi e arrotondati alla terza cifra decimale.
