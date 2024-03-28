@@ -1,7 +1,7 @@
 \chapter{Progetto}
 \label{sec:arch}
 
-Alla luce delle considerazioni esposte nel capitolo precedente, tenendo conto che riscrivere l'intero microservizio in Rust con Vulkan non sia un lavoro banale (e comunque non ci sarebbero miglioramenti tangibili in termini di prestazioni), si è scelto di adottare un approccio ibrido e, quindi, di mantenere i kernel in \gls{CUDA} e usare Rust per la parte web del microservizio. Questo permette di mantenere le prestazioni e il \textit{know-how} di \gls{CUDA} e di poter trarre benefici l'ecosistema e la \textit{development experience} di Rust. Inoltre, l'uso di Rust per la parte web permette di avere un sistema più sicuro rispetto al C++, e soprattutto più portabile e facilmente mantenibile, grazie al suo sistema di gestione delle dipendenze e alla sua capacità di compilare codice per diverse architetture.
+Alla luce delle considerazioni esposte nel capitolo precedente, tenendo conto che riscrivere l'intero microservizio in Rust con Vulkan non sia un lavoro banale (e comunque non ci sarebbero miglioramenti tangibili in termini di prestazioni), si è scelto di adottare un approccio ibrido: mantenere i kernel in \gls{CUDA} e usare Rust per la parte web del microservizio. Questo permette di mantenere le prestazioni e il \textit{know-how} di \gls{CUDA} e di poter trarre benefici l'ecosistema e la \textit{development experience} di Rust. Inoltre, l'uso di Rust per la parte web permette di avere un sistema più sicuro rispetto al C++, e, soprattutto, più portabile e facilmente mantenibile, grazie al suo sistema di gestione delle dipendenze e alla sua capacità di compilare codice per diverse architetture.
 
 \begin{figure}[ht]
     \centering
@@ -30,7 +30,7 @@ $ tree .
 \end{lstlisting}
 \vspace{5mm}
 
-Il file \textit{Cargo.toml} contiene le dipendenze del progetto, mentre nel file \textit{build.rs} sono presenti le istruzioni necessarie per il linking della libreria dinamica \verb|libsolver.so| di \gls{CUDA} specificando l'header da cui recuperare la \textit{signature} delle funzioni con \textit{autocxx}, come mostrato in \ref{lis:build_rs}. La cartella \textit{src} contiene il codice Rust del microservizio, in cui: nel file \textit{main.rs} è presente il codice principale con le REST \gls{API}, \textit{solver.rs} contiene le funzioni Rust per interfacciarsi con la libreria dinamica tramite \gls{FFI}, e \textit{models.rs} le strutture dati necessarie per la computazione e il parsing dei dati \gls{JSON} inviati dal client.
+Il file \textit{Cargo.toml} contiene le dipendenze del progetto, mentre nel file \textit{build.rs} sono presenti le istruzioni necessarie per il linking della libreria dinamica \verb|libsolver.so| di \gls{CUDA}, specificando l'header da cui recuperare la \textit{signature} delle funzioni con \textit{autocxx}, come mostrato in \ref{lis:build_rs}. La cartella \textit{src} contiene il codice Rust del microservizio, in cui: nel file \textit{main.rs} è presente il codice principale con le REST \gls{API}, \textit{solver.rs} contiene le funzioni Rust per interfacciarsi con la libreria dinamica tramite \gls{FFI}, e \textit{models.rs} le strutture dati necessarie per la computazione e il parsing dei dati \gls{JSON} inviati dal client.
 
 \newpage
 \vspace{5mm}
@@ -63,7 +63,7 @@ fn main() {
 \vspace{5mm}
 
 
-Per integrare Rust con la libreria in \gls{CUDA} si è scelto di utilizzare la libreria \textit{autocxx} che, partendo dai file di header \gls{CUDA}, genera tramite macro il modulo \verb|ffi| Rust, necessario per richiamare la libreria. Questo permette di avere codice Rust aggiornato, in grado di chiamare le funzioni della libreria \gls{CUDA} e di gestire i puntatori e le strutture dati necessarie per la computazione. Inoltre, \textit{autocxx} permette di gestire automaticamente la conversione dei tipi di dato tra Rust e C++, permettendo di scrivere codice Rust più pulito e mantenibile.
+Per integrare Rust con la libreria in \gls{CUDA} si è scelto di utilizzare la libreria \textit{autocxx} che, partendo dai file di header \gls{CUDA}, genera tramite macro il modulo \verb|ffi| Rust, necessario per richiamare le funzioni della libreria. Questo permette di avere codice Rust aggiornato, in grado di chiamare le funzioni della libreria \gls{CUDA} e di gestire i puntatori e le strutture dati necessarie per la computazione. Inoltre, \textit{autocxx} permette di gestire automaticamente la conversione dei tipi di dato tra Rust e C++, permettendo di scrivere codice Rust più pulito e mantenibile.
 
 \newpage
 \vspace{5mm}
@@ -112,7 +112,7 @@ int solve_matrix(...);
 
 % spigare tokio e axum
 
-Per quanto riguarda la parte web, si è scelto di utilizzare il framework \textit{Axum} per la gestione delle REST \gls{API}, in quanto è un framework molto leggero e performante, che sfrutta le feature \textit{async/await} di Rust. Inoltre, \textit{Axum} permette di gestire facilmente le richieste \gls{HTTP} e di serializzare e deserializzare i dati in formato \gls{JSON} tramite l'integrazione automatica con la libreria \textit{Serde}. Gestire le richieste \gls{HTTP} in modo asincrono e parallelo, permette di avere un numero maggiore di richieste al server senza che vi siano rallentamenti nell'esecuzione. In caso di configurazioni con più \gls{GPU} questo può facilitare la gestione delle risorse in modo parallelo, permettendo di sfruttare al meglio le risorse disponibili e diminuire i tempi di risposta per il client. Questo approccio è simile a quanto avverrebbe usando thread e processi, ma è trasparente allo sviluppatore che può scrivere codice parallelo come se fosse sequenziale, delegando al runtime la gestione dei task in modo efficiente.
+Per quanto riguarda la parte web, si è scelto di utilizzare il framework \textit{Axum} per la gestione delle REST \gls{API}, in quanto è un framework molto leggero e performante, che sfrutta la feature \textit{async/await} di Rust. Inoltre, \textit{Axum} permette di gestire facilmente le richieste \gls{HTTP} e di serializzare e deserializzare i dati in formato \gls{JSON} tramite l'integrazione automatica con la libreria \textit{Serde}. Gestire le richieste \gls{HTTP} in modo asincrono e parallelo, permette di avere un numero maggiore di richieste al server senza che vi siano rallentamenti nell'esecuzione. In caso di configurazioni con più \gls{GPU} questo può facilitare la gestione delle risorse in modo parallelo, permettendo di sfruttare al meglio le risorse disponibili e diminuire i tempi di risposta per il client. Questo approccio è simile a quanto avverrebbe usando thread e processi, ma è trasparente allo sviluppatore, che può scrivere codice parallelo come se fosse sequenziale, delegando al runtime la gestione dei task in modo efficiente.
 
 % spiegare rest api con json
 
@@ -148,7 +148,7 @@ fn app() -> Router {
 
 \newpage
 
-Le REST \gls{API} sono definite come funzioni \textit{async}, macchine a stati, detti \textit{task}, in cui l'esecuzione è delegata al runtime asincrono \textit{Tokio}. I task vengono ripartiti in più thread usando il modello del \textit{cooperative scheduling} \cite[]{Rust:Tokio_sched}, il risultato è che i task collaborano in modo da gestire le richieste in modo efficiente.
+Le REST \gls{API} sono definite come funzioni \textit{async}, macchine a stati, detti \textit{task}, in cui l'esecuzione è delegata al runtime asincrono \textit{Tokio}. I task vengono ripartiti in più thread usando il modello del \textit{cooperative scheduling} \cite[]{Rust:Tokio_sched}, il risultato è che i task collaborano in modo da gestire le richieste e i dati in modo efficiente.
 
 \vspace{5mm}
 \begin{lstlisting}[language=Rust, caption=Web API, label=lis:api]
@@ -184,7 +184,7 @@ Un esempio di richiesta \gls{API} è mostrato in \ref{lis:api_req}, in cui si in
 \begin{lstlisting}[language=bash, caption=Esempio richiesta API, label=lis:api_req]
 $ curl -X POST http://localhost:3000/solve-matrix \
     -H "Content-Type: application/json" \
-    -d '{"qubo_matrix": [[1, 0, 0, 0, 1, 0, 0, 0, 1]], "N": 3,
+    -d '{"qubo_matrix": [1, 0, 0, 0, 1, 0, 0, 0, 1], "N": 3,
          "solutionsNumber": 3 }'
 
 {
@@ -222,19 +222,16 @@ mod tests {
 \end{lstlisting}
 \vspace{5mm}
 
-
-
 La compilazione e il rilascio sono gestiti tramite \textit{cargo} e \textit{docker}, permettendo di avere un sistema di \textit{build} e \textit{deploy} automatizzato e riproducibile. L'uso della libreria dinamica, in questo caso, può essere utile, per aggiornare le funzioni \gls{CUDA} senza dover ricompilare l'intero microservizio, così da aumentare il riutilizzo del codice. È comunque possibile anche usare una libreria statica, per avere un sistema più portabile e indipendente dalle librerie esterne. Integrando la compilazione tra \textit{cargo} e \gls{NVCC}, e impostando conseguentemente il linking dell'eseguibile finale in \textit{build.rs} si può generare un singolo binario che contenga sia il codice Rust che \gls{CUDA}. Mi sento di consigliare questo approccio per avere un sistema più robusto e mantenibile, in quanto permette di avere un controllo maggiore sulle dipendenze e di evitare problemi di compatibilità e versioning delle librerie.
 
 \section{Sviluppi futuri}
 
-
 % sviluppo futuri con grpc di protobuf
 
-Possibili migliorie per rendere il microservizio ancora più efficiente potrebbe essere l'usare \textit{gRPC} al posto di REST \gls{API}, in quanto permette di avere una comunicazione più efficiente e performante, grazie al protocollo binario e alla gestione automatica della serializzazione e deserializzazione dei dati. Inoltre, \textit{gRPC} permette di definire i servizi e i messaggi tramite \textit{Protocol Buffers}, che permette di avere una definizione standardizzata e facilmente mantenibile dei dati e delle \gls{API}. Questo permetterebbe di avere un sistema più scalabile e performante, in grado di gestire un numero maggiore di richieste e in modo più efficiente. Questo approccio permette di richiamare le \gls{API} da altre macchine in modo più facile, integrando il modo più solido il microservizio nell'architettura software aziendale.
+Possibili migliorie per rendere il microservizio ancora più efficiente potrebbe essere l'uso di \textit{gRPC} al posto delle REST \gls{API}, in quanto permette di avere una comunicazione più efficiente e performante, grazie al protocollo binario e alla gestione automatica della serializzazione e deserializzazione dei dati. Inoltre, \textit{gRPC} permette di definire i servizi e i messaggi tramite \textit{Protocol Buffers}, che permette di avere una definizione standardizzata e facilmente mantenibile dei dati e delle \gls{API}. Questo permetterebbe di avere un sistema più scalabile e performante, in grado di gestire un numero maggiore di richieste e in modo più efficiente. Questo approccio permette di richiamare le \gls{API} da altre macchine in modo più facile, integrando il modo più solido il microservizio nell'architettura software aziendale.
 
 % multi gpu
 
-Data l'architettura modulare del microservizio, è possibile estenderlo facilmente aggiungendo nuove \gls{API} e nuove funzionalità, come la gestione di più \gls{GPU}, la gestione di più matrici \gls{QUBO} in parallelo, o la possibilità di integrare le \gls{API} Vulkan per sostituire alcune funzioni \gls{CUDA}, oppure combinare i due framework e usarli in modo intercambiabile in base alle esigenze. Sarebbe, teoricamente, possibile avere un sistema multi-GPU con hardware di vendor differenti ed usare Vulkan per \gls{GPU} AMD e \gls{CUDA} per \gls{GPU} NVIDIA, parallelamente.
+Data l'architettura modulare del microservizio, è possibile estenderlo facilmente aggiungendo nuove \gls{API} e nuove funzionalità, come la gestione di più \gls{GPU}, la gestione di più matrici \gls{QUBO} in parallelo, o la possibilità di integrare le \gls{API} Vulkan per sostituire alcune funzioni \gls{CUDA}, oppure combinare i due framework e usarli in modo interscambiabile in base alle esigenze. Sarebbe, teoricamente, anche possibile avere un sistema multi-GPU con hardware di vendor differenti ed usare Vulkan per \gls{GPU} AMD e \gls{CUDA} per \gls{GPU} NVIDIA, parallelamente.
 
 

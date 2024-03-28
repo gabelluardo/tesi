@@ -17,8 +17,8 @@ Non ci addentreremo oltre per quanto riguarda la teoria dei problemi \gls{QUBO} 
 
 \begin{itemize}
     \item Generazione delle possibili soluzioni
-    \item Calcolo del costo della soluzione per ogni soluzione
-    \item Identificazione della soluzione ottima, cioè a costo minimo (o massimo, a seconda del problema)
+    \item Calcolo dell'energia di ogni soluzione
+    \item Identificazione della soluzione ottima, cioè a energia minima (o massima, a seconda del problema)
 \end{itemize}
 
 Per calcolare il costo della soluzione, è necessario moltiplicare la matrice \gls{QUBO} per la soluzione e moltiplicare il risultato per la soluzione trasposta. Il costo della soluzione è anche chiamato \textit{energia}.
@@ -53,7 +53,7 @@ Un esempio di risoluzione con \gls{CUDA} è mostrato in \ref{lis:qubo_cuda}, pur
 
 \vspace{5mm}
 \begin{lstlisting}[language=C++, caption=CUDA moltiplicazine matrice QUBO, label=lis:qubo_cuda]
-__global__ void matMulKernel(const uint *sol,
+__global__ void solverKernel(const uint *sol,
         const uint *mat, uint *res, const uint dim) {
   const uint col = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -101,7 +101,7 @@ void solver(const uint *h_mat, const uint dim) {
 \end{lstlisting}
 \vspace{5mm}
 
-Per quanto riguarda la parte web del microservizio, è necessario scegliere librerie che siano in grado di esporre REST \gls{API} per oggetti di grandi dimensioni, dato che le matrici \gls{QUBO} possono anche avere migliaia di righe e colonne. Nonostante esistano molte librerie di questo tipo è importante che siano testate e mantenute, in modo da garantire standard di sicurezza per non compromettere asset aziendali.
+Per quanto riguarda la parte web del microservizio, è necessario scegliere librerie che siano in grado di esporre REST \gls{API} e fare il parsing di oggetti di grandi dimensioni, dato che le matrici \gls{QUBO} possono anche avere migliaia di righe e colonne. Nonostante esistano molte librerie di questo tipo è importante che siano testate e mantenute, in modo da garantire standard di sicurezza per non compromettere asset aziendali.
 
 % 2. quali approcci sono possibili e perché si è scelto di provare rust + vulkan
 
@@ -117,7 +117,7 @@ Il problema può essere affrontato in diversi modi, in particolare, si sono cons
 
 Dato che la priorità era quella di deprecare la libreria legacy C++, ed eventualmente, usare Vulkan (se avesse portato benefici prestazionali), si è scelto di iniziare attuando il terzo approccio, in quanto avrebbe permesso di ottenere un microservizio più moderno, performante e mantenibile. Inoltre, dato che la parte \gls{CUDA} era già scritta in modo modulare, sarebbe stato eventualmente facile passare al secondo approccio.
 
-Un altro importante requisito era che l'intero microservizio fosse compilabile come unico binario, senza che per il deploy in produzione fosse presente un interprete runtime. Questo restringeva la scelta dei possibili linguaggi ai soli che avessero compilatori \gls{AOT}, che fossero, cioè, in grado di produrre direttamente codice macchina. Tra i linguaggi che soddisfacevano tutti i requisiti e con cui avevo maggiore esperienza, si è scelto Rust. Ritengo che Rust sia il più adatto par vari motivi: il suo vasto ecosistema web (nonostante comunque meno florido di altri linguaggi come Java e Go), le performance eccellenti a carichi di lavoro intensi, e la sua capacità di interfacciarsi con librerie C/C++ tramite \gls{FFI}. Inoltre, anche il supporto a Vulkan è molto buono, soprattutto perché ultimamente è un linguaggio scelto dagli studio per lo sviluppo di videogiochi, con documentazione e risorse disponibili in costante crescita.
+Un altro importante requisito era che l'intero microservizio fosse compilabile come unico binario, senza che per il deploy in produzione fosse presente un interprete runtime. Questo restringeva la scelta dei possibili linguaggi ai soli che avessero compilatori \gls{AOT}, che fossero, cioè, in grado di produrre direttamente codice macchina. Tra i linguaggi che soddisfacevano tutti i requisiti e con cui avevo maggiore esperienza, si è scelto Rust. Ritengo che Rust sia il più adatto par vari motivi: il suo vasto ecosistema web (nonostante comunque meno florido di altri linguaggi come Java e Go), le performance eccellenti a carichi di lavoro intensi, e la sua capacità di interfacciarsi con librerie C/C++ tramite \gls{FFI}. Inoltre, il supporto a Vulkan è molto buono, dato che ultimamente è il linguaggio scelto dagli studio per sviluppare videogiochi, con documentazione e risorse in costante crescita.
 
 I requisiti possono essere, quindi, riassunti come segue:
 
