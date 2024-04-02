@@ -10,6 +10,4 @@ Tesi di Laurea Magistrale in Software Engineering
 
 ## Licenza
 
-Asset in [/images](/images) distribuiti in [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), attribuzione [@gabelluardo](https://github.com/gabelluardo).
-
-Se non diversamente specificato dalla fonte.
+Gli asset in [/images](/images) distribuiti in [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), attribuzione [@gabelluardo](https://github.com/gabelluardo) (se non diversamente specificato dalla fonte)
